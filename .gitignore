@@ -1,3 +1,8 @@
 *.pyc
 *.root
 *.log
+*.d 
+*.so
+*.pcm
+*.json
+*.lumi
