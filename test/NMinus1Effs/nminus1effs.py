@@ -13,14 +13,14 @@ if miniAOD:
 else:
     from SUSYBSMAnalysis.Zprime2muAnalysis.HistosFromPAT_cfi import HistosFromPAT
 
-from SUSYBSMAnalysis.Zprime2muAnalysis.OurSelection2018_cff import loose_cut, trigger_match, tight_cut, allDimuons
+from SUSYBSMAnalysis.Zprime2muAnalysis.OurSelection2017_cff import loose_cut, trigger_match, tight_cut, allDimuons
 
 #### METFilterMiniAOD_cfi.py
 #### src = cms.InputTag("TriggerResults","","RECO"), #### instead of PAT
 
 process.source = cms.Source ("PoolSource",
                              fileNames =  cms.untracked.vstring(
-                                 '/store/data/Run2018C/SingleMuon/MINIAOD/17Sep2018-v1/120000/FAB77E55-E1DE-0D43-A907-BD709A4B2B1D.root'
+        '/store/mc/RunIIFall17MiniAODv2/ZToMuMu_NNPDF31_13TeV-powheg_M_3500_4500/MINIAODSIM/MUOTrackFix_12Apr2018_94X_mc2017_realistic_v14_ext1-v1/90000/22A4ECE2-52FF-E811-98A0-0CC47A745294.root',
                                  ),
                              )
 
@@ -133,7 +133,7 @@ process.p *= process.allDimuonsNoCosm * process.dimuonsNoCosm * process.NoCosm
 if __name__ == '__main__' and 'submit' in sys.argv:
     crab_cfg = \
 '''
-from CRABClient.UserUtilities import config
+from CRABClient.UserUtilities import config,getUsernameFromSiteDB
 config = config()
 config.General.requestName = 'ana_nminus1_%(name)s%(extra)s'
 config.General.workArea = 'crab'
@@ -142,33 +142,25 @@ config.JobType.psetName = 'nminus1effs.py'
 config.Data.inputDataset =  '%(ana_dataset)s' 
 config.Data.inputDBS = 'global'
 job_control
+config.Data.outLFNDirBase = '/store/user/'+getUsernameFromSiteDB()
 config.Data.outputDatasetTag = 'ana_nminus1_%(name)s'
-config.Data.outLFNDirBase = '/store/group/phys_exotica/dimuon/2018/nminus1effs'
 config.Site.storageSite = 'T2_CH_CERN'
 '''
+#config.Data.outLFNDirBase = '/store/group/phys_exotica/dimuon/2017/nminus1effs'
 
     just_testing = 'testing' in sys.argv
     extra = '_'+ex if ex!='' else ''
     if not 'no_data' in sys.argv:
         from SUSYBSMAnalysis.Zprime2muAnalysis.goodlumis import *
         dataset_details = [
-            # Prompt Reco for ABC
-            #('SingleMuonRun2018A-06June2018-v1', '/SingleMuon/Run2018A-06Jun2018-v1/MINIAOD'), 
-            #('SingleMuonRun2018A-PromptReco-v3', '/SingleMuon/Run2018A-PromptReco-v3/MINIAOD'),
-            #('SingleMuonRun2018B-PromptReco-v1', '/SingleMuon/Run2018B-PromptReco-v1/MINIAOD'),
-            #('SingleMuonRun2018B-PromptReco-v2', '/SingleMuon/Run2018B-PromptReco-v2/MINIAOD'),
-            #('SingleMuonRun2018C-PromptReco-v1', '/SingleMuon/Run2018C-PromptReco-v1/MINIAOD'),
-            #('SingleMuonRun2018C-PromptReco-v2', '/SingleMuon/Run2018C-PromptReco-v2/MINIAOD'),
-            #('SingleMuonRun2018C-PromptReco-v3', '/SingleMuon/Run2018C-PromptReco-v3/MINIAOD'),
-
-            # PPD recommendation to use 17Sep2018 ReReco for ABC, Prompt for D
-            ('SingleMuonRun2018A-17Sep2018-v2',  '/SingleMuon/Run2018A-17Sep2018-v2/MINIAOD'),
-            ('SingleMuonRun2018B-17Sep2018-v1',  '/SingleMuon/Run2018B-17Sep2018-v1/MINIAOD'),
-            ('SingleMuonRun2018C-17Sep2018-v1',  '/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD'),
-            ('SingleMuonRun2018D-PromptReco-v2', '/SingleMuon/Run2018D-PromptReco-v2/MINIAOD'),
+            ('SingleMuonRun2017B-31Mar2018-v1','/SingleMuon/Run2017B-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017C-31Mar2018-v1','/SingleMuon/Run2017C-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017D-31Mar2018-v1','/SingleMuon/Run2017D-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017E-31Mar2018-v1','/SingleMuon/Run2017E-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017F-31Mar2018-v1','/SingleMuon/Run2017F-31Mar2018-v1/MINIAOD'),
         ]
         lumi_lists = [
-			'Run2018MuonsOnly',
+			'Run2017MuonsOnly',
 		]
         jobs = []
         for lumi_name in lumi_lists:
@@ -188,10 +180,7 @@ config.Site.storageSite = 'T2_CH_CERN'
             print lumi_mask
 
             new_py = open('nminus1effs.py').read()
-            if '17Sept2018' in dataset_name:
-                new_py += "\nprocess.GlobalTag.globaltag = '102X_dataRun2_Sep2018Rereco_v1'\n"
-            else:
-                new_py += "\nprocess.GlobalTag.globaltag = '102X_dataRun2_Prompt_v11'\n"
+            new_py += "\nprocess.GlobalTag.globaltag = '94X_dataRun2_v11'\n"
             open('nminus1effs_crab.py', 'wt').write(new_py)
 
             new_crab_cfg = crab_cfg % locals()
@@ -217,7 +206,7 @@ config.Data.lumiMask = '%(lumi_mask)s'
             ana_dataset = sample.dataset
 
             new_py = open('nminus1effs.py').read()
-            new_py += "\nprocess.GlobalTag.globaltag = '102X_upgrade2018_realistic_v12'\n"  #### RunH
+            new_py += "\nprocess.GlobalTag.globaltag = '94X_mc2017_realistic_v17'\n"  #### RunH
             open('nminus1effs_crab.py', 'wt').write(new_py)
 
             new_crab_cfg = crab_cfg % locals()

@@ -41,6 +41,7 @@ private:
   pat::Electron* cloneAndSwitchElectronEnergy(const pat::Electron&) const;
   pat::Muon*     cloneAndSwitchMuonTrack     (const pat::Muon&, const edm::Event& event)     const;
 
+  void embedExpectedNnumberOfMatchedStations(pat::Muon*, float minDistanceFromEdge = 10.0);
   void embedTriggerMatch(pat::Electron*,std::string, const pat::TriggerObjectStandAloneCollection&, std::vector<int>&);
   void embedTriggerMatch(pat::Muon*,std::string, const pat::TriggerObjectStandAloneCollection&, std::vector<int>&);
   void embedTriggerMatch_or(pat::Muon*, const std::string&, const pat::TriggerObjectStandAloneCollection&, const pat::TriggerObjectStandAloneCollection&, std::vector<int>&, std::vector<int>&);
@@ -260,6 +261,26 @@ pat::Muon* Zprime2muLeptonProducer_miniAOD::cloneAndSwitchMuonTrack(const pat::M
   mu->addUserInt("trackUsedForMomentum", type);
   
   return mu;
+}
+
+void Zprime2muLeptonProducer_miniAOD::embedExpectedNnumberOfMatchedStations(pat::Muon* mu, float minDistanceFromEdge)  { 
+  // https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/DataFormats/MuonReco/src/Muon.cc#L136-L153
+  unsigned int stationMask = 0;
+  for( auto& chamberMatch : (*mu).matches() )
+    {
+      if (chamberMatch.detector()!=MuonSubdetId::DT && chamberMatch.detector()!=MuonSubdetId::CSC) continue;
+      float edgeX = chamberMatch.edgeX;
+      float edgeY = chamberMatch.edgeY;
+      // check we if the trajectory is well within the acceptance
+      if(edgeX<0 && fabs(edgeX)>fabs(minDistanceFromEdge) &&
+     edgeY<0 && fabs(edgeY)>fabs(minDistanceFromEdge))
+    stationMask |= 1<<( (chamberMatch.station()-1)+4*(chamberMatch.detector()-1) );
+    }
+  unsigned int n = 0;
+  for(unsigned int i=0; i<8; ++i)
+    if (stationMask&(1<<i)) n++;
+
+  mu->addUserInt("expectedNnumberOfMatchedStations",n);
 }
 
 
@@ -488,6 +509,9 @@ std::pair<pat::Muon*,int> Zprime2muLeptonProducer_miniAOD::doLepton(const edm::E
       new_mu->addUserInt("photon_index", mm[cand].key());
     }    
   }
+
+  // Embed expectedNnumberOfMatchedStations
+  embedExpectedNnumberOfMatchedStations(new_mu);
 
   // Do our own trigger matching and embed the results. After the next
   // pair of function calls, there will be new user floats:

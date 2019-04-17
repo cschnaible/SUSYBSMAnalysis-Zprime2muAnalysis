@@ -15,12 +15,11 @@ from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
 
 #process.maxEvents.input = 1000
 process.source.fileNames = [
-        #    '/store/mc/RunIIAutumn18MiniAOD/ZToMuMu_NNPDF31_13TeV-powheg_M_1400_2300/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/110000/2BBCC514-3E29-1D40-BCA5-B0F0D09FD08C.root',
-        '/store/mc/RunIIAutumn18MiniAOD/ZToMuMu_NNPDF31_13TeV-powheg_M_50_120/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/120000/078DB2B1-40DD-634D-A3CF-D2E377CAFA48.root'
+        '/store/mc/RunIIFall17MiniAODv2/ZToMuMu_NNPDF31_13TeV-powheg_M_3500_4500/MINIAODSIM/MUOTrackFix_12Apr2018_94X_mc2017_realistic_v14_ext1-v1/90000/22A4ECE2-52FF-E811-98A0-0CC47A745294.root',
                             ]
 process.options.wantSummary = False
 
-process.GlobalTag.globaltag = '102X_upgrade2018_realistic_v12'
+process.GlobalTag.globaltag = '94X_mc2017_realistic_v17'
 
 from SUSYBSMAnalysis.Zprime2muAnalysis.HistosFromPAT_cfi import HistosFromPAT_MiniAOD as HistosFromPAT
 HistosFromPAT.leptonsFromDileptons = True
@@ -45,14 +44,14 @@ else:
 
 from SUSYBSMAnalysis.Zprime2muAnalysis.hltTriggerMatch_cfi import trigger_match, prescaled_trigger_match, trigger_paths, prescaled_trigger_paths, overall_prescale, trigger_pt_threshold, offline_pt_threshold,prescaled_trigger_pt_threshold, prescaled_offline_pt_threshold, trigger_filters, trigger_path_names, prescaled_trigger_filters, prescaled_trigger_path_names, prescaled_trigger_match_2018, trigger_match_2018
 
-import SUSYBSMAnalysis.Zprime2muAnalysis.OurSelection2018_cff as OurSelection2018
+import SUSYBSMAnalysis.Zprime2muAnalysis.OurSelection2017_cff as OurSelection2017
 cuts = {
     #'Our2012'  : OurSelectionDec2012,
     #'Our2016'  : OurSelection2016,
-    'Our2018'  : OurSelection2018,
-    'Our2018AtZ' : OurSelection2018,
+    'Our2017'  : OurSelection2017,
+    'Our2017AtZ' : OurSelection2017,
     # Vertex-constrained mass not guaratneed with Simple selection
-    #'Simple'   : OurSelection2018, # The selection cuts in the module listed here are ignored below.
+    #'Simple'   : OurSelection2017, # The selection cuts in the module listed here are ignored below.
     }
 dils = [
         ('OppSign','%(leptons_name)s:%(track)s@+ %(leptons_name)s:%(track)s@-','daughter(0).pdgId() + daughter(1).pdgId() == 0')
@@ -190,7 +189,7 @@ config.Data.outLFNDirBase = '/store/user/'+getUsernameFromSiteDB()
 config.Site.storageSite = 'T2_CH_CERN'
                           
 '''
-#config.Data.outLFNDirBase = '/store/group/phys_exotica/dimuon/2018/effres'
+#config.Data.outLFNDirBase = '/store/group/phys_exotica/dimuon/2017/effres'
         
     # Only do DY MC samples and apply HardInteractionFilter
     FilterInfo = {

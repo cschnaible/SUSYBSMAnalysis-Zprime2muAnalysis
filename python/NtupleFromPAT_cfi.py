@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from SUSYBSMAnalysis.Zprime2muAnalysis.HardInteraction_cff import hardInteraction,hardInteraction_MiniAOD
 NtupleFromPAT_MiniAOD = cms.EDAnalyzer('SimpleNtupler_miniAOD',
+                        hlt_src = cms.InputTag('TriggerResults','','HLT'),
                         dimu_src = cms.InputTag('SimpleMuonsAllSigns'),
                         met_src = cms.InputTag("slimmedMETs"),
                         jet_src = cms.InputTag("slimmedJets"),
@@ -9,6 +10,9 @@ NtupleFromPAT_MiniAOD = cms.EDAnalyzer('SimpleNtupler_miniAOD',
                         doElectrons = cms.bool(False),
                         # This is re-set in histos.py for MC
                         TriggerResults_src = cms.InputTag('TriggerResults', '', 'RECO'),
+                        Prescale_src = cms.InputTag('patTrigger','','PAT'),
+                        L1Prescale_min_src = cms.InputTag('patTrigger','l1min','PAT'),
+                        trigger_paths = cms.vstring(),
                         genEventInfo = cms.untracked.InputTag('generator'),
                         metFilter = cms.VInputTag(
                             cms.InputTag("Flag_HBHENoiseFilter"), 

@@ -21,20 +21,13 @@ muonTriggerMatchHLTMuonsMiniAOD = cms.EDProducer('PATTriggerMatcherDRLessByR',
                                           resolveByMatchQuality = cms.bool( True )
 )
 
-#trigger_pt_threshold = 45
-#offline_pt_threshold = 48 #?
 trigger_pt_threshold = 50
-offline_pt_threshold = 53 #?
-#trigger_paths = ['HLT_Mu50_v%i' % i for i in (6, 7, 8, 9, 10, 11)]
-#trigger_paths = ['HLT_Mu45_eta2p1_v%i' % i for i in (1,2)]
-#trigger_paths = ['HLT_Mu45_eta2p1_v1']
-#trigger_paths = ['HLT_Mu50_v1']
-#trigger_match = 'userFloat("TriggerMatchPt") > %(trigger_pt_threshold)i && abs(userFloat("TriggerMatchEta")) < 2.1' % locals()
+offline_pt_threshold = 53
 trigger_match = 'userFloat("TriggerMatchPt") > %(trigger_pt_threshold)i ' % locals()
 
 #overall_prescale = 1
 prescaled_trigger_pt_threshold = 27
-prescaled_offline_pt_threshold = 27
+prescaled_offline_pt_threshold = 30
 
 # http://fwyzard.web.cern.ch/fwyzard/hlt/2015/summary
 #Path HLT_Mu27: 2015
@@ -104,9 +97,19 @@ prescaled_offline_pt_threshold = 27
 # - V10: (runs 300079 - 302019)
 # - V11: (runs 302026 - 306171)
 # - V12: (runs 306416 - 306460)
-#prescaled_trigger_paths = ['HLT_Mu27_v%i' % i for i in (6, 7, 8, 9, 10, 11)]
-#trigger_paths = ['HLT_Mu50_v%i' % i for i in (6, 7, 8, 9, 10, 11)]
-#overall_prescale = ?
+prescaled_trigger_paths = ['HLT_Mu27_v%i' % i for i in (6, 7, 8, 9, 10, 11, 12)]
+trigger_paths = ['HLT_Mu50_v%i' % i for i in (6, 7, 8, 9, 10, 11, 12)]
+# Re-prescaling to a common prescale may not work well in 2017 because there were 30
+# different prescaled for HLT_Mu27, 12 of which have > 1 fb-1 of data collected
+# prescale 561 has 2.691 fb-1
+# prescale 505 has 2.184 fb-1
+# prescale 445 has 2.824 fb-1
+# ...
+# prescale 280 has 6.509 fb-1
+# presclae 120 has 4.161 fb-1
+# See presentation from Alexander on Jan 8 2018, slide 5
+# https://indico.cern.ch/event/691362/contributions/2837865/attachments/1579802/2495971/Lanyov_Update_2017_Run_08.01.2018.pdf
+overall_prescale = 561
 
 # http://fwyzard.web.cern.ch/fwyzard/hlt/2018/summary
 #Path HLT_Mu27: 2018
@@ -127,11 +130,11 @@ prescaled_offline_pt_threshold = 27
 # - first seen online on run 315252 (/cdaq/physics/Run2018/2e34/v1.1.0/HLT/V4)
 # - last  seen online on run 325175 (/cdaq/physics/Run2018/2e34/v3.6.1/HLT/V2)
 # - V2: (runs 315252 - 325175)
-prescaled_trigger_paths = ['HLT_Mu27_v%i' % i for i in (12,13)]
-trigger_paths = ['HLT_Mu50_v%i' % i for i in (12,13)]
+#prescaled_trigger_paths = ['HLT_Mu27_v%i' % i for i in (12,13)]
+#trigger_paths = ['HLT_Mu50_v%i' % i for i in (12,13)]
 #trigger_paths += ['HLT_OldMu100_v%i' % i for i in (3)]
 #trigger_paths += ['HLT_TkMu100_v%i' % i for i in (2)]
-overall_prescale = 500 
+#overall_prescale = 500 
 
 prescaled_trigger_match = trigger_match.replace('Trigger', 'prescaledTrigger').replace('%i' % trigger_pt_threshold, '%i' % prescaled_trigger_pt_threshold)
 

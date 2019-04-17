@@ -104,6 +104,7 @@ private:
   std::pair<bool, float>             back_to_back_cos_angle(const pat::CompositeCandidate&) const;
   std::pair<bool, CachingVertex<5> > vertex_constrained_fit(const pat::CompositeCandidate&) const;
   std::pair<bool, float>             dpt_over_pt(const pat::CompositeCandidate&) const;
+  //bool MatchedMuonStationCut(const pat::CompositeCandidate&) const;
 
   // If the variable to embed in the methods above is a simple int or
   // float or is going to be embedded wholesale with the generic
@@ -273,19 +274,45 @@ std::pair<bool, float> Zprime2muCompositeCandidatePicker::dpt_over_pt(const pat:
     if (abs(dil.daughter(i)->pdgId()) == 13) {
       const reco::CandidateBaseRef& lep = dileptonDaughter(dil, i);
       if (lep.isNonnull()) {
-	const pat::Muon* mu = toConcretePtr<pat::Muon>(lep);
-	if (mu) {
-	  const reco::Track* tk = patmuon::getPickedTrack(*mu).get();
-	  if (tk) {
-	    const double dpt_over_pt = ptError(tk)/tk->pt();
-	    if (dpt_over_pt > dpt_over_pt_largest) dpt_over_pt_largest = dpt_over_pt;
-	  }
-	}
+        const pat::Muon* mu = toConcretePtr<pat::Muon>(lep);
+        if (mu) {
+          const reco::Track* tk = patmuon::getPickedTrack(*mu).get();
+          if (tk) {
+            const double dpt_over_pt = ptError(tk)/tk->pt();
+            if (dpt_over_pt > dpt_over_pt_largest) dpt_over_pt_largest = dpt_over_pt;
+          }
+        }
       }
     }
   }
   return std::make_pair(dpt_over_pt_largest < dpt_over_pt_max, dpt_over_pt_largest);
 }
+
+/*
+bool Zprime2muCompositeCandidatePicker::MatchedMuonStationCut(const pat::CompositeCandidate& dil) const {
+  // Cut on matched stations
+  //
+  bool passed0 = false;
+  bool passed1 = false;
+  const reco::CandidateBaseRef& lep0 = dileptonDaughter(dil, 0);
+  const reco::CandidateBaseRef& lep1 = dileptonDaughter(dil, 1);
+
+  if (lep0.isNonnull() && lep1.isNonnull()) {
+    const pat::Muon* mu0 = toConcretePtr<pat::Muon>(lep0);
+    const pat::Muon* mu1 = toConcretePtr<pat::Muon>(lep1);
+    if (mu0 && mu1) {
+      if ( (*lep0).numberOfMatchedStations()>1 || ((*lep0).numberOfMatchedStations()==1 && ( (*lep0).userInt("expectedNnumberOfMatchedStations")<2 || !((*lep0).stationMask()==1 || (*lep0).stationMask()==16) || (*lep0).numberOfMatchedRPCLayers()>2 ))) {
+          passed0 = true;
+      }
+      if ( (*lep1).numberOfMatchedStations()>1 || ((*lep1).numberOfMatchedStations()==1 && ( (*lep1).userInt("expectedNnumberOfMatchedStations")<2 || !((*lep1).stationMask()==1 || (*lep1).stationMask()==16) || (*lep1).numberOfMatchedRPCLayers()>2 ))) {
+          passed1 = true;
+      }
+    }
+  }
+
+  return passed0 && passed1;
+}
+*/
 
 void Zprime2muCompositeCandidatePicker::produce(edm::Event& event, const edm::EventSetup& setup) {
   edm::Handle<pat::CompositeCandidateCollection> cands;
@@ -306,7 +333,7 @@ void Zprime2muCompositeCandidatePicker::produce(edm::Event& event, const edm::Ev
       continue;
    
     // Now apply cuts that can't.
-
+    
     // Back-to-back cut to kill cosmics.
     std::pair<bool, float> cos_angle = back_to_back_cos_angle(*c);
     if (cut_on_back_to_back_cos_angle && !cos_angle.first)

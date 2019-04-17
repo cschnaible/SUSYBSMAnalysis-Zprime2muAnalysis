@@ -3,11 +3,11 @@
 
 miniAOD = True
 Electrons = False
-ex = '20190301'
+ex = '20190416'
 
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVAnalysisSummaryTable
 # Set temporary global tags here, may be changed later
-MCGT = '102X_upgrade2018_realistic_v12'
+MCGT = '94X_mc2017_realistic_v17'
 
 import sys, os, FWCore.ParameterSet.Config as cms
 from SUSYBSMAnalysis.Zprime2muAnalysis.Zprime2muAnalysis_cff import switch_hlt_process_name
@@ -17,12 +17,12 @@ from SUSYBSMAnalysis.Zprime2muAnalysis.NtupleFromPAT_cfi import NtupleFromPAT_Mi
 from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
 
 process.source.fileNames = [
-        #'/store/data/Run2018A/SingleMuon/MINIAOD/06Jun2018-v1/410000/CCA4DBD1-FF83-E811-988F-FA163E5991FE.root'
-        #'/store/data/Run2018D/SingleMuon/MINIAOD/PromptReco-v2/000/322/068/00000/F8DCA3B9-41B0-E811-8B23-FA163E279E4C.root'
-        '/store/mc/RunIIAutumn18MiniAOD/ZToMuMu_NNPDF31_13TeV-powheg_M_50_120/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/120000/078DB2B1-40DD-634D-A3CF-D2E377CAFA48.root'
+        '/store/mc/RunIIFall17MiniAODv2/ZToMuMu_NNPDF31_13TeV-powheg_M_3500_4500/MINIAODSIM/MUOTrackFix_12Apr2018_94X_mc2017_realistic_v14_ext1-v1/90000/22A4ECE2-52FF-E811-98A0-0CC47A745294.root',
+        #'/store/data/Run2017B/SingleMuon/MINIAOD/31Mar2018-v1/100000/8E1C8864-E737-E811-831A-0025905A6094.root',
+        #'/store/data/Run2017C/SingleMuon/MINIAOD/31Mar2018-v1/90000/7C12660B-0737-E811-8CE5-02163E015DB6.root',
            ]
 
-process.maxEvents.input = -1
+process.maxEvents.input = 10000
 #process.options.wantSummary = cms.untracked.bool(True)# false di default
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000 # default 1000
 
@@ -55,24 +55,24 @@ process.load('SUSYBSMAnalysis.Zprime2muAnalysis.PrescaleToCommon_cff')
 process.PrescaleToCommon.trigger_paths = prescaled_trigger_paths
 process.PrescaleToCommon.overall_prescale = overall_prescale
 process.PrescaleToCommonMiniAOD.trigger_paths = prescaled_trigger_paths
-process.PrescaleToCommonMiniAOD.overall_prescale = overall_prescale # 500 for 2018
+process.PrescaleToCommonMiniAOD.overall_prescale = overall_prescale
 
 # These modules define the basic selection cuts. For the monitoring
 # sets below, we don't need to define a whole new module, since they
 # just change one or two cuts -- see below.
 import SUSYBSMAnalysis.Zprime2muAnalysis.OurSelectionDec2012_cff as OurSelectionDec2012
 import SUSYBSMAnalysis.Zprime2muAnalysis.OurSelection2016_cff as OurSelection2016
-import SUSYBSMAnalysis.Zprime2muAnalysis.OurSelection2018_cff as OurSelection2018
+import SUSYBSMAnalysis.Zprime2muAnalysis.OurSelection2017_cff as OurSelection2017
 
 # CandCombiner includes charge-conjugate decays with no way to turn it
 # off. To get e.g. mu+mu+ separate from mu-mu-, cut on the sum of the
 # pdgIds (= -26 for mu+mu+).
 dils = [
     ('MuonsPlusMuonsMinus', '%(leptons_name)s:muons@+ %(leptons_name)s:muons@-','daughter(0).pdgId() + daughter(1).pdgId() == 0'),
-    ('MuonsPlusMuonsPlus',  '%(leptons_name)s:muons@+ %(leptons_name)s:muons@+','daughter(0).pdgId() + daughter(1).pdgId() == -26'),
-    ('MuonsMinusMuonsMinus','%(leptons_name)s:muons@- %(leptons_name)s:muons@-','daughter(0).pdgId() + daughter(1).pdgId() == 26'),
-    ('MuonsSameSign',       '%(leptons_name)s:muons@- %(leptons_name)s:muons@-',''),
-    ('MuonsAllSigns',       '%(leptons_name)s:muons@- %(leptons_name)s:muons@-',''),
+    #('MuonsPlusMuonsPlus',  '%(leptons_name)s:muons@+ %(leptons_name)s:muons@+','daughter(0).pdgId() + daughter(1).pdgId() == -26'),
+    #('MuonsMinusMuonsMinus','%(leptons_name)s:muons@- %(leptons_name)s:muons@-','daughter(0).pdgId() + daughter(1).pdgId() == 26'),
+    #('MuonsSameSign',       '%(leptons_name)s:muons@- %(leptons_name)s:muons@-',''),
+    #('MuonsAllSigns',       '%(leptons_name)s:muons@- %(leptons_name)s:muons@-',''),
     ]
 
 # Define sets of cuts for which to make plots. If using a selection
@@ -81,9 +81,9 @@ dils = [
 cuts = {
     #'Our2012'  : OurSelectionDec2012,
     #'Our2016'  : OurSelection2016,
-    'Our2018'  : OurSelection2018,
-    'Our2018MuPrescaled' : OurSelection2018,
-    'Simple'   : OurSelection2018, # The selection cuts in the module listed here are ignored below.
+    'Our2017'  : OurSelection2017,
+    'Our2017MuPrescaled' : OurSelection2017,
+    #'Simple'   : OurSelection2017, # The selection cuts in the module listed here are ignored below.
     }
 
 if miniAOD and Electrons:
@@ -105,7 +105,7 @@ if miniAOD and Electrons:
     cuts = {
         'Our2012'  : OurSelectionDec2012,
         'Our2016'  : OurSelection2016,
-        'Our2018'  : OurSelection2018,
+        'Our2017'  : OurSelection2017,
         'EmuVeto'  : OurSelectionDec2012, # this switches on the dRMuEl veto
         'Simple'   : OurSelectionDec2012, # The selection cuts in the module listed here are ignored below.
         }
@@ -136,7 +136,7 @@ for cut_name, Selection in cuts.iteritems():
 
     if miniAOD:
         leptons = process.leptonsMini.clone(muon_cuts = muon_cuts)
-        if (len(trigger_filters)>0 or len(prescaled_trigger_filters)>0) and ('Our2018' in cut_name or cut_name=='Simple'):
+        if (len(trigger_filters)>0 or len(prescaled_trigger_filters)>0) and ('Our2017' in cut_name or cut_name=='Simple'):
             leptons.trigger_filters = trigger_filters
             leptons.trigger_path_names = trigger_path_names
             leptons.prescaled_trigger_filters = prescaled_trigger_filters
@@ -261,6 +261,7 @@ def ntuplify(process, cut='Simple', dil_name='MuonsAllSigns', fill_gen_info=Fals
     dimu_src_tag = cut+dil_name
     if miniAOD:
         ntuple = NtupleFromPAT_MiniAOD.clone(dimu_src=cms.InputTag(dimu_src_tag))
+        ntuple.trigger_paths = prescaled_trigger_paths
     else:
         ntuple = NtupleFromPAT.clone(dimu_src=cms.InputTag(dimu_src_tag))
 
@@ -329,16 +330,17 @@ def add_filters(process,is_mc=True):
                 getattr(process,path_name).insert(0,dataFilter)
 
 def for_data(process):
+    process.GlobalTag.globaltag = '94X_dataRun2_v11'
     # Add filters
     add_filters(process,is_mc=False)
     # make a SimpleMuonsAllSignsNtuple
     ntuplify(process) 
-    # make a Our2018MuonsPlusMuonsMinusNtuple
-    ntuplify(process,cut='Our2018',dil_name='MuonsPlusMuonsMinus') 
-    # make a Our2018MuonsPlusMuonsMinusNtuple
-    ntuplify(process,cut='Our2018MuPrescaled',dil_name='MuonsPlusMuonsMinus') 
+    # make a Our2017MuonsPlusMuonsMinusNtuple
+    ntuplify(process,cut='Our2017',dil_name='MuonsPlusMuonsMinus') 
+    # make a Our2017MuPrescaledMuonsPlusMuonsMinusNtuple
+    ntuplify(process,cut='Our2017MuPrescaled',dil_name='MuonsPlusMuonsMinus') 
     if Electrons:
-        # make a Our2018MuonsElectronsAllSigns
+        # make a Our2017MuonsElectronsAllSigns
         ntuplify(process,cut='Simple',dil_name='MuonsElectronsAllSigns') 
     #check_prescale(process, prescaled_trigger_paths)
 
@@ -348,10 +350,12 @@ def for_mc(process, hlt_process_name, fill_gen_info):
     add_filters(process)
     # make a SimpleMuonsAllSignsNtuple
     ntuplify(process,fill_gen_info=fill_gen_info) 
-    # make a Our2018MuonsPlusMuonsMinusNtuple
-    ntuplify(process,cut='Our2018',dil_name='MuonsPlusMuonsMinus',fill_gen_info=fill_gen_info)
+    # make a Our2017MuonsPlusMuonsMinusNtuple
+    ntuplify(process,cut='Our2017',dil_name='MuonsPlusMuonsMinus',fill_gen_info=fill_gen_info)
+    # make a Our2017MuPrescaledMuonsPlusMuonsMinusNtuple
+    ntuplify(process,cut='Our2017MuPrescaled',dil_name='MuonsPlusMuonsMinus') 
     if Electrons:
-        # make a Our2018MuonsElectronsAllSigns
+        # make a Our2017MuonsElectronsAllSigns
         ntuplify(process,cut='Simple',dil_name='MuonsElectronsAllSigns',fill_gen_info=fill_gen_info) 
     # this must be done last (i.e. after anything that might have an InputTag for something HLT-related)
     switch_hlt_process_name(process, hlt_process_name)
@@ -412,11 +416,11 @@ config.Data.inputDataset =  '%(ana_dataset)s'
 config.Data.inputDBS = 'global'
 config.Data.publication = False
 job_control
-config.Data.outputDatasetTag = 'ana_datamc_%(name)s'
+config.Data.outputDatasetTag = 'ana_datamc_%(name)s%(extra)s'
 config.Data.outLFNDirBase = '/store/user/'+getUsernameFromSiteDB()
 config.Site.storageSite = 'T2_CH_CERN'
 '''
-#config.Data.outLFNDirBase = '/store/group/phys_exotica/dimuon/2018/datamc'
+#config.Data.outLFNDirBase = '/store/group/phys_exotica/dimuon/2017/datamc'
     
     just_testing = 'testing' in sys.argv
     extra = '_'+ex if ex!='' else ''
@@ -425,30 +429,14 @@ config.Site.storageSite = 'T2_CH_CERN'
         from SUSYBSMAnalysis.Zprime2muAnalysis.goodlumis import *
 
         dataset_details = [
-            # what is this dataset? Use only run 315267?
-            #('SingleMuonRun2018A-22May2018-v1', '/SingleMuon/Run2018A-22May2018-v1/MINIAOD'), 
-            # To be replaced by 06June2018 (these datasets had data deletion problems)
-            #('SingleMuonRun2018A-PromptReco-v1', '/SingleMuon/Run2018A-PromptReco-v1/MINIAOD'), 
-            #('SingleMuonRun2018A-PromptReco-v2', '/SingleMuon/Run2018A-PromptReco-v2/MINIAOD'),
-
-            # PromptReco A-C
-            # PPD recommendation for 2018A PromptReco 
-            # 06Jun2018-v1 + PromptReco-v3
-            #('SingleMuonRun2018A-06June2018-v1', '/SingleMuon/Run2018A-06Jun2018-v1/MINIAOD'), 
-            #('SingleMuonRun2018A-PromptReco-v3', '/SingleMuon/Run2018A-PromptReco-v3/MINIAOD'),
-            #('SingleMuonRun2018B-PromptReco-v1', '/SingleMuon/Run2018B-PromptReco-v1/MINIAOD'),
-            #('SingleMuonRun2018B-PromptReco-v2', '/SingleMuon/Run2018B-PromptReco-v2/MINIAOD'),
-            #('SingleMuonRun2018C-PromptReco-v1', '/SingleMuon/Run2018C-PromptReco-v1/MINIAOD'),
-            #('SingleMuonRun2018C-PromptReco-v2', '/SingleMuon/Run2018C-PromptReco-v2/MINIAOD'),
-            #('SingleMuonRun2018C-PromptReco-v3', '/SingleMuon/Run2018C-PromptReco-v3/MINIAOD'),
-            # Good to use
-            ('SingleMuonRun2018A-17Sep2018-v2',  '/SingleMuon/Run2018A-17Sep2018-v2/MINIAOD'),
-            ('SingleMuonRun2018B-17Sep2018-v1',  '/SingleMuon/Run2018B-17Sep2018-v1/MINIAOD'),
-            ('SingleMuonRun2018C-17Sep2018-v1',  '/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD'),
-            ('SingleMuonRun2018D-PromptReco-v2', '/SingleMuon/Run2018D-PromptReco-v2/MINIAOD'),
+            ('SingleMuonRun2017B-31Mar2018-v1','/SingleMuon/Run2017B-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017C-31Mar2018-v1','/SingleMuon/Run2017C-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017D-31Mar2018-v1','/SingleMuon/Run2017D-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017E-31Mar2018-v1','/SingleMuon/Run2017E-31Mar2018-v1/MINIAOD'),
+            ('SingleMuonRun2017F-31Mar2018-v1','/SingleMuon/Run2017F-31Mar2018-v1/MINIAOD'),
         ]
 
-        lumi_lists = ['Run2018MuonsOnly']
+        lumi_lists = ['Run2017MuonsOnly']
 
         jobs = []
         for lumi_name in lumi_lists:
@@ -467,10 +455,6 @@ config.Site.storageSite = 'T2_CH_CERN'
 
             new_py = open('histos.py').read()
             new_py += "\nfor_data(process)\n"
-            if '17Sep2018' in dataset_name:
-                new_py += "\nprocess.GlobalTag.globaltag = '102X_dataRun2_Sep2018Rereco_v1'\n"
-            else:
-                new_py += "\nprocess.GlobalTag.globaltag = '102X_dataRun2_Prompt_v11'\n"
             open('histos_crab.py', 'wt').write(new_py)
 
             new_crab_cfg = crab_cfg % locals()
@@ -486,12 +470,13 @@ config.Data.lumiMask = '%(lumi_mask)s'
             if not just_testing:
                 os.system('crab submit -c crabConfig.py')
             else:
-                cmd = 'diff histos.py histos_crab.py | less'
-                print cmd
-                os.system(cmd)
-                cmd = 'less crab.py'
-                print cmd
-                os.system(cmd)
+                os.system('crab submit -c crabConfig.py --dryrun')
+                #cmd = 'diff histos.py histos_crab.py | less'
+                #print cmd
+                #os.system(cmd)
+                #cmd = 'less crab.py'
+                #print cmd
+                #os.system(cmd)
 
         if not just_testing:
             os.system('rm crabConfig.py crabConfig.pyc histos_crab.py histos_crab.pyc tmp.json')
@@ -501,7 +486,7 @@ config.Data.lumiMask = '%(lumi_mask)s'
         crab_cfg = crab_cfg.replace('job_control','''
 config.Data.splitting = 'EventAwareLumiBased'
 config.Data.totalUnits = -1
-config.Data.unitsPerJob  = 10000
+config.Data.unitsPerJob  = %(neventsperjob)s
     ''')
 
        
@@ -514,17 +499,19 @@ config.Data.unitsPerJob  = 10000
             new_py += "\nfor_mc(process,'HLT',True)\n"
             new_py += "\napply_gen_filters(process,\"%(name)s\")\n"%locals()
             open('histos_crab.py', 'wt').write(new_py)
+            neventsperjob = 500000 if 'dy' not in name or 'Inclusive' in name else 10000
 
             open('crabConfig.py', 'wt').write(crab_cfg % locals())
             if not just_testing:
                 os.system('crab submit -c crabConfig.py')
             else:
-                cmd = 'diff histos.py histos_crab.py | less'
-                print cmd
-                os.system(cmd)
-                cmd = 'less crabConfig.py'
-                print cmd
-                os.system(cmd)
+                os.system('crab submit -c crabConfig.py --dryrun')
+                #cmd = 'diff histos.py histos_crab.py | less'
+                #print cmd
+                #os.system(cmd)
+                #cmd = 'less crabConfig.py'
+                #print cmd
+                #os.system(cmd)
 
         if not just_testing:
             os.system('rm crabConfig.py histos_crab.py histos_crab.pyc')

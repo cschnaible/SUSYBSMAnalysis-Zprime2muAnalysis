@@ -68,9 +68,14 @@
   <use name="CommonTools/UtilAlgos"/>
   <use name="DataFormats/HepMCCandidate"/>
 </library>
+
 <library file="AsymmetryFrameAnalysis.cc,AsymmetryParametrizer.cc,CocktailAnalyzer.cc,EfficiencyFromMC.cc,EfficiencyFromMCMini.cc,EfficiencyFromMCnoTrigger.cc,HardInteractionFilter.cc,DibosonGenMass.cc,TauTauSelection.cc,HardInteractionNtuple.cc,HistosFromPAT.cc, MuonsFromDimuons.cc,PrintEvent.cc,QCDBackground.cc,ResolutionUsingMC.cc,ResolutionAtZ.cc,SimpleNtupler.cc,SimpleNtupler_miniAOD.cc,Zprime2muAsymmetry.cc,Zprime2muMassReach.cc,QScaleSelector.cc" name="Zprime2muAnalyzers">
   <use name="rootgraphics"/>
   <use name="CommonTools/UtilAlgos"/>
+  <use name="FWCore/PluginManager"/>
+  <use name="FWCore/Common"/>
+  <use name="DataFormats/Common"/>
+  <use name="HLTrigger/HLTcore"/>
   <use name="DataFormats/PatCandidates"/>
   <use name="SUSYBSMAnalysis/Zprime2muAnalysis"/>
 </library>
@@ -88,6 +93,7 @@
   <use name="CommonTools/UtilAlgos"/>
   <use name="SimDataFormats/PileupSummaryInfo"/>
 </library>
+
 <library file="GetPrescaleL1HLT.cc" name="GetPrescaleL1HLT">
     <use name="FWCore/PluginManager"/>
     <use name="FWCore/Common"/>
