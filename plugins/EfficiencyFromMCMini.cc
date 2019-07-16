@@ -29,6 +29,7 @@ class EfficiencyFromMCMini : public edm::EDAnalyzer {
   const bool use_resonance_mass_denom;
   const edm::InputTag dimuon_src;
   std::vector<std::string> trigger_filters;
+  std::vector<std::string> trigger_path_full_names;
   std::vector<std::string> trigger_path_names;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> trigger_summary_src_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
@@ -48,7 +49,7 @@ class EfficiencyFromMCMini : public edm::EDAnalyzer {
   std::vector<pat::TriggerObjectStandAloneCollection> vec_L3_muons;
 
   TH1F *GenWeight;
-  TProfile *NNPDF30Weight;
+  //TProfile *NNPDF30Weight;
 
   typedef std::pair<TH1F*, TH1F*> effhistos;
 
@@ -108,6 +109,7 @@ EfficiencyFromMCMini::EfficiencyFromMCMini(const edm::ParameterSet& cfg)
     use_resonance_mass_denom(cfg.getParameter<bool>("use_resonance_mass_denom")),
     dimuon_src(cfg.getParameter<edm::InputTag>("dimuon_src")),
     trigger_filters(cfg.getParameter<std::vector<std::string>>("trigger_filters")),
+    trigger_path_full_names(cfg.getParameter<std::vector<std::string>>("trigger_path_full_names")),
     trigger_path_names(cfg.getParameter<std::vector<std::string>>("trigger_path_names")),
     trigger_summary_src_(consumes<pat::TriggerObjectStandAloneCollection>(cfg.getParameter<edm::InputTag>("trigger_summary"))),
     triggerBits_(consumes<edm::TriggerResults>(cfg.getParameter<edm::InputTag>("bits"))),
@@ -133,7 +135,7 @@ EfficiencyFromMCMini::EfficiencyFromMCMini(const edm::ParameterSet& cfg)
   TH1::SetDefaultSumw2(true);
 
   GenWeight = fs->make<TH1F>("GenWeight", "weight per event", 4, -2,2);
-  NNPDF30Weight = fs->make<TProfile>("NNPDF30Weight","Scaling from NNPDF31 to NNDPDF30",nbins,min_mass,max_mass);
+  //NNPDF30Weight = fs->make<TProfile>("NNPDF30Weight","Scaling from NNPDF31 to NNDPDF30",nbins,min_mass,max_mass);
 
   accnopt           = make_eff_pair("AccNoPt", "Acceptance (no p_{T} cut) vs. mass");
   acceptance        = make_eff_pair("Acceptance", "Acceptance vs. mass");
@@ -200,7 +202,7 @@ void EfficiencyFromMCMini::analyze(const edm::Event& event, const edm::EventSetu
   const double m_denom = use_resonance_mass_denom ? hardInteraction.resonance->mass() : hardInteraction.dilepton().mass();
 
   _theWeight = scale_to_nnpdf30 ? _theWeight * nnpdf30_scaling(m) : _theWeight;
-  NNPDF30Weight->Fill(m,nnpdf30_scaling(m));
+  //NNPDF30Weight->Fill(m,nnpdf30_scaling(m));
   
   accnopt.second->Fill( m_denom, _theWeight );
   accnopt_bb.second->Fill( m_denom, _theWeight );
@@ -226,18 +228,24 @@ void EfficiencyFromMCMini::analyze(const edm::Event& event, const edm::EventSetu
   if (in_acceptance_no_pt)
   {
     accnopt.first->Fill( m, _theWeight );
-    accnopt_bb.first->Fill( m, _theWeight );
-    accnopt_e.first->Fill( m, _theWeight );
-  } // No Eta categories for Acceptance
+    if (aeta_minus <= 1.2 && aeta_plus <= 1.2) {
+        accnopt_bb.first->Fill( m, _theWeight );
+    } else {
+        accnopt_e.first->Fill( m, _theWeight );
+    }
+  } 
 
   if (in_acceptance_no_pt &&
       hardInteraction.lepMinus->pt() > acceptance_min_pt &&
       hardInteraction.lepPlus ->pt() > acceptance_min_pt)
   {
     acceptance.first->Fill( m, _theWeight );
-    acceptance_bb.first->Fill( m, _theWeight );
-    acceptance_e.first->Fill( m, _theWeight );
-  }  // No Eta categories for Acceptance
+    if (aeta_minus <= 1.2 && aeta_plus <= 1.2) {
+        acceptance_bb.first->Fill( m, _theWeight );
+    } else{
+        acceptance_e.first->Fill( m, _theWeight );
+    }
+  } 
   else
     // Trigger efficiencies below are with respect to events where
     // both gen muons were in acceptance, so stop processing this
@@ -281,9 +289,11 @@ void EfficiencyFromMCMini::analyze(const edm::Event& event, const edm::EventSetu
       for (unsigned h = 0; h < obj.filterLabels().size(); ++h) {
         for(unsigned i_f=0; i_f<trigger_filters.size(); ++i_f) {
           if (obj.filterLabels()[h] == trigger_filters[i_f]) {
-            if(!( obj.pt() > hlt_single_min_pt && fabs(obj.eta()) < hlt_single_max_eta ))
-              edm::LogError("EfficiencyFromMC") << "check hlt_single_min_pt and hlt_single_max_eta";
-            vec_L3_muons[i_f].push_back(obj);
+            if (obj.hasPathName(trigger_path_full_names[i_f])) {
+              if(!( obj.pt() > hlt_single_min_pt && fabs(obj.eta()) < hlt_single_max_eta ))
+                edm::LogError("EfficiencyFromMC") << "check hlt_single_min_pt and hlt_single_max_eta";
+              vec_L3_muons[i_f].push_back(obj);
+            }
           }
         }
       }

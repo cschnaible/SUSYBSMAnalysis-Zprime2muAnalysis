@@ -1,0 +1,71 @@
+# ************
+# These uncertainties are for purely illustrative purposes in the ratio panel of the mass
+# plot and for reasonable-enough looking numbers in the yield tables. Their accuracy should
+# be taken with a grain of salt. 
+# ************
+# Uncertainties:
+# ************
+# * DY PDF:
+#   * Function
+#   * Correlated for all three years
+# * Non-DY cross sections:
+#   * +/- 7%
+#   * Correlated for all three years
+# * Jet Background
+#   * +/- 50% for 2016, +/- 100% for 2017+2018
+#   * Correlated for all three years
+# * Mass scale: 
+#   * +/- 1% for all three years
+#   * 2017+2018 correlated and uncorrelated with 2016
+#   * Caveats: this is actually a one-sided shift in the mass, not an up/down shift in the yield. 
+#              I'm simplifying things to a single +/- 1% uncertainty because the largest shifts 
+#              are at > 6 TeV and the bulk of events are < 3 TeV where the scale uncertainty is 
+#              negligible. For details see Min's study: 
+#              https://indico.cern.ch/event/829944/#2-reconstruction-selection-and
+#              Also, assuming 1% is valid for < 4 TeV in 2016 which is really isn't.
+# * Z-normalization: 
+#   * +/- 5% for all three years
+#   * Correlated for all three years
+# * ID efficiency: 
+#   # +/- 1% for all three years
+#   * Correlated for all three years
+# * Trigger efficiency: 
+#   * +/- 1% for all three years
+#   * Correlated for all three years
+# * Reco efficiency: 
+#   * +/- 1% BB, +/- 2% BEEE, +/- 2% All
+#   * Correlated for all three years
+#   * Caveats: This is also a one-sided uncertainty that I'm simplifying to a symmetric one.
+#              This uncertainty is also uncorrelated between BB and BE+EE categories but I 
+#              ignore that for now. Accounting for the correlations/uncorrelations for this 
+#              uncertainty introduces negligible corrections compared to the 5% Z-norm, 
+#              7% non-DY yield, and DY PDF contributions. 
+# ************
+# For uncorrelated uncertainties between 16 and 17+18 we use the luminosity ratio for simplicity
+# * (2017+2018) / (2016+2017+2018) = (42.1+61.3)/(139.7) = 0.740 ~= 3/4
+# * 2016 / (2016+2017+2018) = 36.3 / 139.7 = 0.260 ~= 1/4
+# * Assuming, err(16) = err(17+18)
+# * rel err = sqrt( pow(1/4,2)*err(16)^2 + pow(3/4,2)*err(17+18)^2 + (3/4)*(1/4)*err(16)*err(17+18) )
+#           = err * sqrt( 13/16 ) = 0.9 * err
+# ************
+# This calculation is done once per bin in mass plot
+
+corrErr2 = pow(0.05,2) + pow(0.01,2) + pow(0.01,2) + pow(0.02,2)
+uncorrErr2 = (13/16)*pow(0.01,2)
+allerr2 = corrErr2 + uncorrErr2
+
+ix = hist.GetXaxis().GetBinCenter(ibin) # hist is the template histogram used in mass plots
+
+dy_pdf_func = '6.68537e-3 + 2.54218e-5 * pow(x,1) - 1.09503e-8 * pow(x,2) + 1.97141e-12 * pow(x,3)'
+dy_pdf = R.TF1('dy_pdf',dy_pdf_func,60,6000)
+reldyerr2 = pow(dy_pdf.Eval(ix),2)
+idyerr = dybin*math.sqrt( reldyerr2 )
+
+relnondyerr2 = pow(0.07,2)
+inonerr = nondysum*math.sqrt( relnondyerr2 ) # nondysum = tt + diboson + single-top
+
+jeterr = 1.*jetbin
+
+total = sum([hist_sums[name].GetBinContent(ibin) for name in mcDrawOrder if hist_sums[name].GetBinContent(ibin)>0])
+toterr = math.sqrt(pow(idyerr,2) + pow(inonerr,2) + pow(jeterr,2) + pow(total,2)*allerr2 )
+reltoterr = toterr/total

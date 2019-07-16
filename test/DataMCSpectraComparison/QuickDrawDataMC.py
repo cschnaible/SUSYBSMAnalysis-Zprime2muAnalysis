@@ -3,14 +3,15 @@ import numpy as np
 import array, math
 R.gROOT.SetBatch(True)
 import argparse
-from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples_chris import samples
+from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples_chris import samples18
 import SUSYBSMAnalysis.Zprime2muAnalysis.Plotter as Plotter
 from SUSYBSMAnalysis.Zprime2muAnalysis.roottools_chris import poisson_intervalize, divide_bin_width, clopper_pearson_poisson_means, cumulative_histogram
 parser = argparse.ArgumentParser()
 #parser.add_argument('-f','--file',dest='datafile',default='data/old_datamc_20190326/ana_datamc_Run2018ABCD_inc.root')
-parser.add_argument('-f','--file',dest='datafile',default='data/ana_datamc_Run2018ABCD.root')
+parser.add_argument('-f','--file',dest='datafile',default='data/ana_datamc_Run2018ABC_17Sep2018_Run2018D_22Jan2019.root')
 parser.add_argument('-d','--dir',default='Our2018MuonsOppSignNtuple')
 parser.add_argument('-x',default='vertex_m',help='Quantity to draw on X axis')
+#parser.add_argument('-x',default='Max$(lep_pt)',help='Quantity to draw on X axis')
 parser.add_argument('-y',default='',help='Quantity to draw on Y axis')
 parser.add_argument('-c','--cut',default='')
 parser.add_argument('-s','--style',default='')
@@ -33,6 +34,8 @@ parser.add_argument('-t','--trig',default='Mu50')
 parser.add_argument('--fullcut',action='store_true')
 parser.add_argument('-cum','--cumulative',action='store_true')
 parser.add_argument('-dyht','--dyhtbinned',action='store_true')
+parser.add_argument('-p','--prescale',dest='prescale',type=float,default=1.)
+parser.add_argument('-dc','--datacut',default='',dest='datacut')
 args = parser.parse_args()
 
 print args
@@ -69,9 +72,9 @@ print toDraw,args.cut
 # https://indico.cern.ch/event/806789/contributions/3357762/attachments/1813726/2963454/ZToMuMuComp_Min_20190318_v1.pdf
 toNNPDF30 = '({a} {b}*pow(gen_dil_mass,1) {c}*pow(gen_dil_mass,2) {d}*pow(gen_dil_mass,3) {e}*pow(gen_dil_mass,4) {f}*pow(gen_dil_mass,5))'.format(a='0.9292',b='+ 5.486E-5',c='+ 6.572E-9',d='- 1.142E-11',e='+ 4.876E-15',f='- 4.117E-19')
 
-prescale = 1.
-if args.dir=='Our2018MuPrescaledMuonsOppSignNtuple': prescale *= 1./500.
-elif args.dir=='Our2018MuPrescaledNoCommonMuonsOppSignNtuple': prescale *= 1./461.1316
+#prescale = 1.
+#if args.dir=='Our2018MuPrescaledMuonsOppSignNtuple': prescale *= 1./500.
+#elif args.dir=='Our2018MuPrescaledNoCommonMuonsOppSignNtuple': prescale *= 1./461.1316
 tdir = args.dir
 mu_cut = \
     "lep_isGlobalMuon[X] && "						\
@@ -109,14 +112,16 @@ if args.dir=='SimpleMuonsAllSignsNtuple' and args.fullcut:
 
 # Data
 print 'Data'
-print cut
-if args.dir=='Our2018MuPrescaledNoCommonMuonsOppSignNtuple':
-    f = R.TFile('data/ana_datamc_Run2018ABCD_nocommon_inc.root')
-else:
-    f = R.TFile(args.datafile)
+data_cut = cut+(' && '+args.datacut if args.datacut!='' else '')
+print data_cut
+#if args.dir=='Our2018MuPrescaledNoCommonMuonsOppSignNtuple':
+#    f = R.TFile('data/ana_datamc_Run2018ABCD_nocommon_inc.root')
+#else:
+#    f = R.TFile(args.datafile)
+f = R.TFile(args.datafile)
 t = f.Get(args.dir+'/t')
 hdata = hist.Clone('hdata')
-t.Draw(toDraw+'>>hdata',cut,args.style)
+t.Draw(toDraw+'>>hdata',data_cut,args.style)
 hdata.SetDirectory(0)
 hdata.SetStats(0)
 data_int = hdata.Integral()
@@ -125,7 +130,7 @@ f.Close()
 # MC
 print 'MC'
 #print mccutweight
-
+samples = samples18
 hists = {sample.name:{} for sample in samples}
 nevents = {sample.name:{} for sample in samples}
 for i,sample in enumerate(samples):
@@ -172,7 +177,7 @@ def mc_stuff(name):
 mc_int = 0.
 hmc = hist.Clone('hmc')
 for sample in samples:
-    scale_by = args.Z0 * prescale * sample.cross_section * args.lumi / float(nevents[sample.name])
+    scale_by = args.Z0 * sample.cross_section * args.lumi / float(nevents[sample.name]) / args.prescale
     hists[sample.name].Scale(scale_by)
     print sample.name,hists[sample.name].Integral()
     mc_int += hists[sample.name].Integral()

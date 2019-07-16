@@ -151,6 +151,7 @@ void HardInteraction::Fill(const reco::GenParticleCollection& genParticles) {
   // record. So, if we didn't find a resonance, and are allowed to,
   // build one (we really only care about its four vector and charge
   // at this point). Use the doc-line l+l- we found to do so.
+  // CJS - this also allows non-DY/Z' events to be analyzed with this class
   if (resonance == 0) {
     if (allowFakeResonance && lepPlusNoIB && lepMinusNoIB) {
       reco::Particle::Charge q = lepPlusNoIB->charge() + lepMinusNoIB->charge();

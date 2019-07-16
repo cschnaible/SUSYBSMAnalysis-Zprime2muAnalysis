@@ -58,6 +58,8 @@ private:
   StringCutObjectSelector<pat::Muon> muon_selector;
   std::string muon_track_for_momentum;
   std::string muon_track_for_momentum_primary;
+  bool doGE;
+  int GEyear;
   std::vector<std::string> muon_tracks_for_momentum;
   edm::InputTag muon_photon_match_src;
   edm::Handle<reco::CandViewMatchMap> muon_photon_match_map;
@@ -67,8 +69,10 @@ private:
   bool use_filters_for_trigger_matching;
   std::vector<std::string> trigger_filters;
   std::vector<std::string> trigger_path_names;
+  std::vector<std::string> trigger_path_full_names;
   std::vector<std::string> prescaled_trigger_filters;
   std::vector<std::string> prescaled_trigger_path_names;
+  std::vector<std::string> prescaled_trigger_path_full_names;
   std::string hlt_filter_ele;
   std::string l1_filter_ele;
   
@@ -104,14 +108,18 @@ Zprime2muLeptonProducer_miniAOD::Zprime2muLeptonProducer_miniAOD(const edm::Para
     muon_selector(cfg.getParameter<std::string>("muon_cuts")),
     muon_track_for_momentum(cfg.getParameter<std::string>("muon_track_for_momentum")),
     muon_track_for_momentum_primary(muon_track_for_momentum),
+    doGE(cfg.getParameter<bool>("doGE")),
+    GEyear(cfg.getParameter<int>("GEyear")),
     muon_photon_match_src(cfg.getParameter<edm::InputTag>("muon_photon_match_src")),
     electron_muon_veto_dR(cfg.getParameter<double>("electron_muon_veto_dR")),
     //trigger_summary_src(cfg.getParameter<edm::InputTag>("trigger_summary_src")),
     trigger_match_max_dR(cfg.getParameter<double>("trigger_match_max_dR")),
     trigger_filters(cfg.getParameter<std::vector<std::string>>("trigger_filters")),
     trigger_path_names(cfg.getParameter<std::vector<std::string>>("trigger_path_names")),
+    trigger_path_full_names(cfg.getParameter<std::vector<std::string>>("trigger_path_full_names")),
     prescaled_trigger_filters(cfg.getParameter<std::vector<std::string>>("prescaled_trigger_filters")),
     prescaled_trigger_path_names(cfg.getParameter<std::vector<std::string>>("prescaled_trigger_path_names")),
+    prescaled_trigger_path_full_names(cfg.getParameter<std::vector<std::string>>("prescaled_trigger_path_full_names")),
     hlt_filter_ele(cfg.getParameter<std::string>("hlt_filter_ele")),
     l1_filter_ele(cfg.getParameter<std::string>("l1_filter_ele")),
 
@@ -127,8 +135,8 @@ Zprime2muLeptonProducer_miniAOD::Zprime2muLeptonProducer_miniAOD(const edm::Para
 
   use_filters_for_trigger_matching = false;
   if(trigger_filters.size()>0 && prescaled_trigger_filters.size()>0) {
-    std::cout << "\n trigger_filters.size()          = " << trigger_filters.size() << "\n";
-    std::cout <<   " prescaled_trigger_filters.size()= " << prescaled_trigger_filters.size() << "\n\n";
+    //std::cout << "\n trigger_filters.size()          = " << trigger_filters.size() << "\n";
+    //std::cout <<   " prescaled_trigger_filters.size()= " << prescaled_trigger_filters.size() << "\n\n";
     use_filters_for_trigger_matching = true;
   }
 
@@ -226,29 +234,23 @@ pat::Muon* Zprime2muLeptonProducer_miniAOD::cloneAndSwitchMuonTrack(const pat::M
   
   reco::Particle::Point vtx(newTrack->vx(), newTrack->vy(), newTrack->vz());
   reco::Particle::LorentzVector p4;
+    //std::cout << "Inside cloneAndSwitchMuonTrack before GE " << mu->pt() << " " << newTrack->pt() << std::endl;
+  if (doGE && (newTrack->pt() > 200 || ((GEyear==2018||GEyear==2017) && fabs(newTrack->eta())>2.1 && newTrack->pt()>110) )) {
+      float phi = newTrack->phi()*TMath::RadToDeg();
+      int isData = (event.isRealData()) ? -1 : 0;
+      float mupt = GeneralizedEndpoint(GEyear).GeneralizedEndpointPt(newTrack->pt(),newTrack->charge(),newTrack->eta(),phi,isData,0);
 
-  //////////   Comment following lines to apply pt bias correction /////
-   const double p = newTrack->p();  
-   p4.SetXYZT(newTrack->px(), newTrack->py(), newTrack->pz(), sqrt(p*p + mass*mass));  
-  //////////   Comment previous lines to apply pt bias correction ----->  Uncomment following lines /////
+      float px = mupt*TMath::Cos(newTrack->phi());
+      float py = mupt*TMath::Sin(newTrack->phi());
+      float pz = mupt*TMath::SinH(newTrack->eta());
+      float p  = mupt*TMath::CosH(newTrack->eta());
+      p4.SetXYZT(px, py, pz, sqrt(p*p + mass*mass));
 
-
-  
-	///////// uncomment following lines to apply pt bias correction -----> comment previous lines /////////
-//  float phi = newTrack->phi()*TMath::RadToDeg();
-
-//  float mupt = GeneralizedEndpoint().GeneralizedEndpointPt(newTrack->pt(),newTrack->charge(),newTrack->eta(),phi,-1,1); //for DATA
-//  float mupt = GeneralizedEndpoint().GeneralizedEndpointPt(newTrack->pt(),newTrack->charge(),newTrack->eta(),phi,0,1);  // for MC
-
-
-//	float px = mupt*TMath::Cos(newTrack->phi());
-//	float py = mupt*TMath::Sin(newTrack->phi());
-//	float pz = mupt*TMath::SinH(newTrack->eta());
-//	float p = mupt*TMath::CosH(newTrack->eta());
-//	p4.SetXYZT(px, py, pz, sqrt(p*p + mass*mass));
-
-// 	std::cout<<"my definition = "<<mupt<<std::endl;
-	/////// uncomment previous lines to apply pt bias correction /////////
+  }
+  else {
+      const double p = newTrack->p();  
+      p4.SetXYZT(newTrack->px(), newTrack->py(), newTrack->pz(), sqrt(p*p + mass*mass));  
+  }
 
 
   mu->setP4(p4);  
@@ -258,6 +260,7 @@ pat::Muon* Zprime2muLeptonProducer_miniAOD::cloneAndSwitchMuonTrack(const pat::M
   mu->setVertex(vtx);
 
   mu->addUserInt("trackUsedForMomentum", type);
+    //std::cout << "Inside cloneAndSwitchMuonTrack after GE " << mu->pt() << std::endl;
   
   return mu;
 }
@@ -472,7 +475,10 @@ std::pair<pat::Muon*,int> Zprime2muLeptonProducer_miniAOD::doLepton(const edm::E
   // Copy the input muon, and switch its p4/charge/vtx out for that of
   // the selected refit track.
   
+  //std::cout << "***" << std::endl;
+  //std::cout << "Inside doLepton before cloneAndSwitchMuonTrack " << mu.pt() << std::endl;
   pat::Muon* new_mu = cloneAndSwitchMuonTrack(mu, event);
+  //std::cout << "Inside doLepton after cloneAndSwitchMuonTrack " << new_mu->pt() << std::endl;
 
   if (new_mu == 0){
     return std::make_pair(new_mu, -1);
@@ -653,13 +659,17 @@ void Zprime2muLeptonProducer_miniAOD::produce(edm::Event& event, const edm::Even
 
         for(unsigned i_f=0; i_f<trigger_filters.size(); ++i_f) {
           if (obj.filterLabels()[h] == trigger_filters[i_f]){ 
-            vec_L3_muons[i_f].push_back(obj);
+            if (obj.hasPathName(trigger_path_full_names[i_f])) {
+              vec_L3_muons[i_f].push_back(obj);
+            }
           }
         }
 
         for(unsigned i_f=0; i_f<prescaled_trigger_filters.size(); ++i_f) {
           if (obj.filterLabels()[h] == prescaled_trigger_filters[i_f]){ 
-            vec_prescaled_L3_muons[i_f].push_back(obj);
+            if (obj.hasPathName(prescaled_trigger_path_full_names[i_f])) {
+              vec_prescaled_L3_muons[i_f].push_back(obj);
+            }
           }
         }
 

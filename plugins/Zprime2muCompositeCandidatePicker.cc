@@ -30,7 +30,8 @@ private:
   };
   struct z_mass_sort {
     bool operator()(const pat::CompositeCandidate& lhs, const pat::CompositeCandidate& rhs) {
-      bool result = (fabs(91.187-lhs.mass()) < fabs(91.187-rhs.mass()));
+      //bool result = (fabs(91.187-lhs.mass()) < fabs(91.187-rhs.mass()));
+      bool result = (fabs(90.0-lhs.mass()) < fabs(90.0-rhs.mass()));
       return result;
     }
   };
@@ -336,7 +337,8 @@ void Zprime2muCompositeCandidatePicker::produce(edm::Event& event, const edm::Ev
   if (prefer_Z){
 	if (new_cands->size() > 0){
     		sort(new_cands->begin(), new_cands->end(), z_mass_sort());
-		if (fabs((*new_cands->begin()).mass()-91.187) < z_window_size){
+		//if (fabs((*new_cands->begin()).mass()-91.187) < z_window_size){
+		if (fabs((*new_cands->begin()).mass()-90.0) < z_window_size){
 			 otherSort = false;
 		}
 	}

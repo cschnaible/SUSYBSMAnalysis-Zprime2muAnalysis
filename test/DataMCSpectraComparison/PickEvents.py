@@ -8,10 +8,12 @@ parser.add_argument('-r','--run',default=318877,type=int,help='Run number')
 parser.add_argument('-l','--lumi',default=102,type=int,help='Lumi number')
 parser.add_argument('-e','--event',default=151594226,type=int,help='Event number')
 parser.add_argument('-mc',default=None,help='MC sample to pick events from')
+parser.add_argument('--extra',default='')
 args = parser.parse_args()
 
 requestName = 'event_'+str(args.run)+'_'+str(args.lumi)+'_'+str(args.event)
 requestName += ('_'+args.mc if args.mc is not None else '')
+requestName += ('_'+args.extra if args.extra else '')
 outputFileName = requestName+'.root'
 
 if args.mc: 
@@ -28,7 +30,7 @@ if args.mc is None:
     elif 319313 <= args.run <= 320393:
         dataset = '/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD'
     elif 320394 <= args.run <= 325273:
-        dataset = '/SingleMuon/Run2018D-PromptReco-v2/MINIAOD'
+        dataset = '/SingleMuon/Run2018D-22Jan2019-v2/MINIAOD'
     else:
         raise ValueError('Check the run number:',args.run)
 else:
@@ -58,11 +60,12 @@ config.General.requestName = '{requestName}'
 config.General.workArea = 'crab'
 
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = '/cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw/CMSSW_10_2_1/src/PhysicsTools/Utilities/configuration/copyPickMerge_cfg.py'
+config.JobType.psetName = '/cvmfs/cms.cern.ch/slc7_amd64_gcc700/cms/cmssw/CMSSW_10_2_1/src/PhysicsTools/Utilities/configuration/copyPickMerge_cfg.py'
 config.JobType.pyCfgParams = ['eventsToProcess_load=evtlist.txt', 'outputFile={outputFileName}']
+config.JobType.allowUndistributedCMSSW = True
 
 config.Data.inputDataset = '{dataset}'
-
+config.Data.publication = False
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5

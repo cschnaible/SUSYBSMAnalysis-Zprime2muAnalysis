@@ -44,6 +44,7 @@ namespace patmuon {
     }
     case TkTMR: return muon::TMR(mu.innerTrack(), mu.tpfmsMuon()).first;
     case TkTunePNew: {
+                         // CMSSW now has this stuff by default
 //        std::cout<<"case TkTunePNew: muon eta "<<mu.eta()<<" muon pt "<<mu.pt()<<std::endl;
          if (hasTeVMuons) return muon::tevOptimized(mu, 200, 17, 40, 0.25).first;
          else return mu.tunePMuonBestTrack();

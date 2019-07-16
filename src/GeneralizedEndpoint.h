@@ -6,8 +6,9 @@
 #define GENERALIZEDENDPOINT_H_
 
 class GeneralizedEndpoint {
+    //int GEyear;
  public:
-   GeneralizedEndpoint();
+   GeneralizedEndpoint(int GEyear);// {GEyear=year;}
    virtual ~GeneralizedEndpoint();
    float GeneralizedEndpointPt(float MuonPt, int MuonCharge, float MuonEta, float MuonPhi, int Mode, int verbose=0);
  private:

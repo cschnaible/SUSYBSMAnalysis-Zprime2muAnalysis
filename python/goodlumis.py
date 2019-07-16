@@ -30,12 +30,14 @@ for hole in holes:
     print 'goodlumis warning: re-adding "hole" run %i from DCS-only list' % hole
     runs_to_remove_from_dcsonly.remove(hole)
 
+# 2016
+ReRecoMuonsOnly16_ll = LumiList('/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_MuonPhys.txt')
+
+# 2017
+ReRecoMuonsOnly17_ll = LumiList('/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_MuonPhys.txt')
 
 # 2018
-Prompt_ll          = LumiList('/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_%i-%i_13TeV_PromptReco_Collisions18_JSON%s.txt' % (first_run, last_prompt_run, prompt_version))
-PromptMuonsOnly_ll = LumiList('/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_%i-%i_13TeV_PromptReco_Collisions18_JSON_MuonPhys%s.txt' % (first_run, last_prompt_run, prompt_version))
-ReReco_ll          = LumiList('/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt')
-ReRecoMuonsOnly_ll = LumiList('/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON_MuonPhys.txt')
+ReRecoMuonsOnly18_ll = LumiList('/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON_MuonPhys.txt')
 
 
 def combine(prompt_ll, rereco1_ll, rereco2_ll, rereco3_ll, dcsonly_ll=None):
@@ -49,9 +51,10 @@ def combine(prompt_ll, rereco1_ll, rereco2_ll, rereco3_ll, dcsonly_ll=None):
     return ll
 
 # Combine all lists
-#Run2018MuonsOnly_ll = PromptMuonsOnly_ll
-Run2018MuonsOnly_ll = ReRecoMuonsOnly_ll
-all_ll_names = ['Run2018MuonsOnly']
+Run2018MuonsOnly_ll = ReRecoMuonsOnly18_ll
+Run2017MuonsOnly_ll = ReRecoMuonsOnly17_ll
+Run2016MuonsOnly_ll = ReRecoMuonsOnly16_ll
+all_ll_names = ['Run2018MuonsOnly','Run2017MuonsOnly','Run2016MuonsOnly']
 
 def all_lls():
     return [(x, eval(x + '_ll')) for x in all_ll_names]

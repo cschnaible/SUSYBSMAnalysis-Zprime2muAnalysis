@@ -7,3 +7,6 @@ def setup_logger(logger_name,log_file,level=logging.INFO):
     fileHandler.setFormatter(formatter)
     l.setLevel(level)
     l.addHandler(fileHandler)
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(formatter)
+    l.addHandler(consoleHandler)

@@ -91,6 +91,7 @@ def binomial_divide(h1, h2, confint=clopper_pearson, force_lt_1=True):
     eyl = []
     eyh = []
     xax = h1.GetXaxis()
+    print confint
     for ibin in xrange(1, nbins+1):
         s,t = h1.GetBinContent(ibin), h2.GetBinContent(ibin)
         if t == 0:

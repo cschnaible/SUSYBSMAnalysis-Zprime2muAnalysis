@@ -3,7 +3,7 @@
 
 miniAOD = True
 Electrons = False
-ex = '20190412'
+ex = '20190502'
 
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVAnalysisSummaryTable
 # Set temporary global tags here, may be changed later
@@ -35,11 +35,12 @@ process.source.fileNames = [
         #'/store/data/Run2018A/SingleMuon/MINIAOD/17Sep2018-v2/270000/40BFE1A5-BEFE-B34B-8836-4ADDB8966C78.root',
         #'/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/90000/DD89AFA9-BD25-F346-939F-A9CC68A04B84.root',
         #'/store/mc/RunIIAutumn18MiniAOD/ZToMuMu_NNPDF31_13TeV-powheg_M_50_120/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/120000/078DB2B1-40DD-634D-A3CF-D2E377CAFA48.root'
+        '/store/mc/RunIIAutumn18MiniAOD/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/120000/8A620F3F-201E-7245-94DF-A9966919C1BD.root',
            ]
 
-process.maxEvents.input = -1
+process.maxEvents.input = 1000
 #process.options.wantSummary = cms.untracked.bool(True)# false di default
-process.MessageLogger.cerr.FwkReport.reportEvery = 10000 # default 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 100 # default 1000
 
 from SUSYBSMAnalysis.Zprime2muAnalysis.hltTriggerMatch_cfi import trigger_match, prescaled_trigger_match, trigger_paths, prescaled_trigger_paths, overall_prescale, offline_pt_threshold, prescaled_offline_pt_threshold, trigger_filters, trigger_path_names, prescaled_trigger_filters, prescaled_trigger_path_names, prescaled_trigger_match_2018, trigger_match_2018
 
@@ -87,7 +88,7 @@ dils = [
     #('MuonsPlusPlus',  '%(leptons_name)s:muons@+ %(leptons_name)s:muons@+','daughter(0).pdgId() + daughter(1).pdgId() == -26'),
     #('MuonsMinusMinus','%(leptons_name)s:muons@- %(leptons_name)s:muons@-','daughter(0).pdgId() + daughter(1).pdgId() == 26'),
     #('MuonsSameSign',       '%(leptons_name)s:muons@- %(leptons_name)s:muons@-',''),
-    ('MuonsAllSigns',       '%(leptons_name)s:muons@- %(leptons_name)s:muons@-',''),
+    #('MuonsAllSigns',       '%(leptons_name)s:muons@- %(leptons_name)s:muons@-',''),
     ]
 
 # Define sets of cuts for which to make plots. If using a selection
@@ -98,8 +99,8 @@ cuts = {
     #'Our2016'  : OurSelection2016,
     'Our2018'  : OurSelection2018,
     'Our2018MuPrescaled' : OurSelection2018,
-    #'Our2018MuPrescaledNoCommon' : OurSelection2018,
-    'Simple'   : OurSelection2018, # The selection cuts in the module listed here are ignored below.
+    'Our2018MuPrescaledNoCommon' : OurSelection2018,
+    #'Simple'   : OurSelection2018, # The selection cuts in the module listed here are ignored below.
     }
 
 if miniAOD and Electrons:
@@ -423,6 +424,7 @@ config.General.requestName = 'ana_datamc_%(name)s%(extra)s'
 config.General.workArea = 'crab'
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'histos_crab.py'   
+config.JobType.allowUndistributedCMSSW = True
 config.Data.inputDataset =  '%(ana_dataset)s'
 config.Data.inputDBS = 'global'
 config.Data.publication = False
@@ -445,6 +447,8 @@ config.Site.storageSite = 'T2_CH_CERN'
             # To be replaced by 06June2018 (these datasets had data deletion problems)
             #('SingleMuonRun2018A-PromptReco-v1', '/SingleMuon/Run2018A-PromptReco-v1/MINIAOD'), 
             #('SingleMuonRun2018A-PromptReco-v2', '/SingleMuon/Run2018A-PromptReco-v2/MINIAOD'),
+            # superceded by 22jan2019 rereco which recovered deleted data - no change wrt prompt
+            #('SingleMuonRun2018D-PromptReco-v2', '/SingleMuon/Run2018D-PromptReco-v2/MINIAOD'),
 
             # PromptReco A-C
             # PPD recommendation for 2018A PromptReco 
@@ -460,9 +464,7 @@ config.Site.storageSite = 'T2_CH_CERN'
             ('SingleMuonRun2018A-17Sep2018-v2',  '/SingleMuon/Run2018A-17Sep2018-v2/MINIAOD'),
             ('SingleMuonRun2018B-17Sep2018-v1',  '/SingleMuon/Run2018B-17Sep2018-v1/MINIAOD'),
             ('SingleMuonRun2018C-17Sep2018-v1',  '/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD'),
-            ('SingleMuonRun2018D-PromptReco-v2', '/SingleMuon/Run2018D-PromptReco-v2/MINIAOD'),
-            #('SingleMuonRun2018D-22Jan2019-v2', '/SingleMuon/Run2018D-22Jan2019-v2/MINIAOD'),
-            # What is global tag to use for this dataset?
+            ('SingleMuonRun2018D-22Jan2019-v2',  '/SingleMuon/Run2018D-22Jan2019-v2/MINIAOD'),
 
         ]
 

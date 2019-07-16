@@ -75,6 +75,56 @@ def poisson_intervalize(h, zero_ex=False, include_zero_bins=False, bin_width=Fal
         h2.SetPointEYhigh(i-1, eyh)
     return h2
 
+def poisson_intervalize_ratio(h1,h2, zero_ex=False, include_zero_bins=False, zeroed=False):
+    #rat = ROOT.TGraphAsymmErrors(h1)
+    assert(h1.GetNbinsX()==h2.GetNbinsX())
+    x_list = []
+    exl_list = []
+    exh_list = []
+    y_list = []
+    eyl_list = []
+    eyh_list = []
+    for i in xrange(1, h1.GetNbinsX()+1):
+        c = h1.GetBinContent(i)
+        w = h2.GetBinContent(i)
+        if (c == 0 or w==0) and not include_zero_bins:
+            continue
+        # brute force skip points for cumulative plot
+        if 'low' in h1.GetName() and include_zero_bins:
+            if h1.GetBinCenter(i) > 120: continue
+        if 'high' in h1.GetName() and include_zero_bins:
+            if h1.GetBinCenter(i) < 120: continue
+        x_list.append(h1.GetBinCenter(i))
+        l,u = poisson_interval(c)
+        # i-1 in the following because ROOT TGraphs count from 0 but
+        # TH1s count from 1
+        if zero_ex:
+            exl_list.append(0)
+            exh_list.append(0)
+            #rat.SetPointEXlow(i-1, 0)
+            #rat.SetPointEXhigh(i-1, 0)
+        else:
+            width = h1.GetBinWidth(i)
+            #rat.SetPointEXlow(i-1, width/2.)
+            #rat.SetPointEXhigh(i-1, width/2.)
+            exl_list.append(width/2.)
+            exh_list.append(width/2.)
+        #x = h1.GetXaxis().GetBinLowEdge(i) + h1.GetXaxis().GetBinWidth(i)/2
+        # Scale error bars, no grass
+        eyl = (c-l)/w if c>0 else 0.
+        eyh = (u-c)/w if c>0 else 0.
+        c = c/w if c>0 and w>0 else 0
+        if zeroed:
+            c = c - 1.
+        y_list.append(c)
+        eyl_list.append(eyl)
+        eyh_list.append(eyh)
+        #rat.SetPoint(i-1,x,c)
+        #rat.SetPointEYlow(i-1, eyl)
+        #rat.SetPointEYhigh(i-1, eyh)
+    rat = ROOT.TGraphAsymmErrors(len(x_list),array('d',x_list),array('d',y_list),array('d',exl_list),array('d',exh_list),array('d',eyl_list),array('d',eyh_list))
+    return rat
+
 def clopper_pearson(n_on, n_tot, alpha=1-0.6827, equal_tailed=True):
     if equal_tailed:
         alpha_min = alpha/2
@@ -96,6 +146,7 @@ def clopper_pearson(n_on, n_tot, alpha=1-0.6827, equal_tailed=True):
 
 def clopper_pearson_poisson_means(x, y, alpha=1-0.6827):
     r, rl, rh = clopper_pearson(x, x+y, alpha)
+    #print x,y,r/(1-r),rl/(1-rl),rh/(1-rh)
     return r/(1 - r), rl/(1 - rl), rh/(1 - rh)
 
 def binomial_divide(h1, h2, confint=clopper_pearson, force_lt_1=True):
@@ -146,7 +197,7 @@ def core_gaussian(hist, factor, i=[0]):
     i[0] += 1
     return f
 
-def cumulative_histogram(h, type='ge'):
+def cumulative_histogram(h, type='ge',noerr=False,overflow=True,end=-1,begin=-1):
     """Construct the cumulative histogram in which the value of each
     bin is the tail integral of the given histogram.
     CJS : for histograms of variable bin widths clone original and reset instead
@@ -157,18 +208,26 @@ def cumulative_histogram(h, type='ge'):
     #hc.Sumw2() # assume it already has Sumw2 called
     nb = h.GetNbinsX()
     hc = h.Clone(h.GetName()+'_cumulative_'+type)
-    hc.Reset('ICESM')
+    #hc.Reset('ICESM')
+    hc.Reset('ICSEM')
+    if overflow: o = 1
+    else: o = 0
     if type == 'ge':
-        first, last, step = nb+1, 0, -1
+        first, last, step = nb+o, 0, -1
     elif type == 'le':
-        first, last, step = 0, nb+1, 1
+        first, last, step = 0, nb+o, 1
     else:
         raise ValueError('type %s not recognized' % type)
     for i in xrange(first, last, step):
         prev = 0 if i == first else hc.GetBinContent(i-step)
-        c = h.GetBinContent(i) + prev
+        if type=='ge' and (hc.GetBinCenter(i) < end or (hc.GetBinCenter(i)>begin and begin>0)):
+            c = 0
+        elif type=='le' and ((hc.GetBinCenter(i) > end and end > 0) or (hc.GetBinCenter(i)<begin and begin>0)):
+            c = 0
+        else:
+            c = h.GetBinContent(i) + prev
         hc.SetBinContent(i, c)
-        if c > 0:
+        if c > 0 and noerr==False:
             hc.SetBinError(i, c**0.5)
         else:
             hc.SetBinError(i, 0.)

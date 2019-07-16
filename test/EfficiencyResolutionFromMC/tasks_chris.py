@@ -55,12 +55,41 @@ elif cmd == 'checkevents':
         do('grep TrigReport crab/crab_effres_%s/res/*stdout | grep \' p$\' | sed -e "s/ +/ /g" | awk \'{ s += $4; t += $5; u += $6; } END { print "summary: total: ", s, "passed: ", t, "failed: ", u }\'' % sample.name)
 
 elif cmd in ['status','report','resubmit','kill','getoutput']:
-    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
+    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples16, samples17, samples18
+    if 'mc2016' in ex: samples = samples16
+    elif 'mc2017' in ex: samples = samples17
+    else: samples = samples18
     for sample in samples:
         if 'dy' not in sample.name: continue
         print sample.name
         name = sample.name
         do('crab %(cmd)s %(opt)s -d crab/crab_ana_effres_%(name)s%(ex)s ' %locals())
+
+elif cmd=='haddmc':
+    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples16, samples17, samples18
+    if 'mc2016' in ex: 
+        where = 'mc_2016'
+        samples = samples16
+    elif 'mc2017' in ex: 
+        samples = samples17
+        where = 'mc_2017'
+    else:
+        samples = samples18
+        where = 'mc'
+    for sample in samples:
+        print sample.name
+        name = sample.name
+        if 'dy' not in name: continue
+        if 'Inclusive' in name: continue
+        if 'Jets' in name: continue
+        date = extra[0]
+        dataset = sample.dataset.split('/')[1]
+        files = glob.glob('/eos/cms/store/user/cschnaib/%(dataset)s/ana_effres_%(name)s_%(date)s/*/*/zp2mu_histos*root' % locals())
+        out = where+'/ana_effres_%s.root' % name
+        print name,date,dataset,len(files)
+        #print files[0]
+        #print out
+        hadd(out, files)
         
 #elif cmd == 'report':
 #    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples

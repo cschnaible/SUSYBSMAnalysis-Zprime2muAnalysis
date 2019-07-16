@@ -26,6 +26,8 @@ parser.add_argument('-xmax',default=8000,dest='xmax',type=int,
         help='X-axis maximum value')
 parser.add_argument('-o','--output-name',dest='output_name',default='',
         help='Extra name to apply to histogram output')
+parser.add_argument('-mc',default='mc',
+        help='Location of MC files')
 
 args = parser.parse_args()
 
@@ -40,8 +42,12 @@ ROOT.gROOT.SetBatch(True)
 
 types = ['AccNoPt', 'Acceptance', 'RecoWrtAcc', 'RecoWrtAccTrig', 'TotalReco', 'TrigWrtAcc']
 doZ = True if 'AtZ' in args.which else False
-zptrig = ['HLTPath_Mu50','HLTPath_OldMu100','HLTPath_TkMu100']
-ztrig = ['HLTPath_Mu27']
+if '2018' in args.which:
+    zptrig = ['HLTPath_Mu50','HLTPath_OldMu100','HLTPath_TkMu100']
+    ztrig = ['HLTPath_Mu27']
+else:
+    zptrig = ['HLTPath_Mu50','HLTPath_TkMu50']
+    ztrig = ['HLTPath_Mu27','HLTPath_TkMu27']
 types += ztrig if doZ else zptrig
 
 colors =  [ROOT.kBlack,   ROOT.kRed, ROOT.kBlue, ROOT.kViolet,            8,            40,ROOT.kOrange+1, ROOT.kMagenta,   ROOT.kGreen]
@@ -68,10 +74,10 @@ samples_totals = {c:[] for c in plot_categories}
 plot_dir_base = os.path.join(plot_dir,output_name)
 print '%30s%30s%30s%30s%30s' % ('sample', 'type', 'num', 'den', 'eff')
 for sample,(mlo,mhi) in dy:
-    f = files[sample] = ROOT.TFile('mc/ana_effres_%s.root' % sample)
+    f = files[sample] = ROOT.TFile(args.mc+'/ana_effres_%s.root' % sample)
     d = f.Get(which)
     if make_individual_plots or make_individual_effs:
-        ps = plot_saver(os.path.join(plot_dir_base,'samples',sample), pdf=True, C=True,log=False)
+        ps = plot_saver(os.path.join(plot_dir_base,'samples',sample), pdf=True, C=False,log=False)
 
     for c in plot_categories:
         cat = categories[c]

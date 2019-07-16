@@ -1,5 +1,6 @@
 import ROOT as R
 import numpy as n
+from SUSYBSMAnalysis.Zprime2muAnalysis.roottools_chris import poisson_intervalize, divide_bin_width, clopper_pearson_poisson_means, cumulative_histogram, move_overflow_into_last_bin, binomial_divide, poisson_intervalize_ratio
 R.PyConfig.IgnoreCommandLineOptions = True
 R.gROOT.SetBatch(True)
 
@@ -34,11 +35,11 @@ def globalSetStyle():
     # pad
     style.SetPadBorderMode(0)                # off
     style.SetPadColor(R.kWhite)              # white
-    style.SetPadGridX(R.kFALSE)              # grid x
-    style.SetPadGridY(R.kFALSE)              # grid y
-    style.SetGridColor(R.kGray)              # gray
-    style.SetGridStyle(3)                    # dotted
-    style.SetGridWidth(1)                    # pixels
+    #style.SetPadGridX(R.kFALSE)              # grid x
+    #style.SetPadGridY(R.kFALSE)              # grid y
+    #style.SetGridColor(R.kGray)              # gray
+    #style.SetGridStyle(3)                    # dotted
+    #style.SetGridWidth(1)                    # pixels
 
     # frame
     style.SetFrameBorderMode(0)              # off
@@ -63,7 +64,7 @@ def globalSetStyle():
     style.SetOptStat(0)                      # off
 
     # fit box
-    style.SetOptFit(1)                       # on
+    style.SetOptFit(0)                       # off
     style.SetStatStyle(0)                    # white
     style.SetStatBorderSize(0)               # default 2
 
@@ -177,11 +178,12 @@ def MOVE_EDGES(Object, L=0., R=0., T=0., B=0., NDC=False):
 # Enhances a plot object, expected to be a hist, graph, or hstack
 # legName is the legend display name, legType is the legend symbol draw option, option is the draw option
 class Plot(object):
-    def __init__(self, plot, legName='hist', legType='felp', option=''):
+    def __init__(self, plot, legName='hist', legType='felp', option='', color=None):
         self.plot = plot
         self.legName = legName
         self.legType = legType
         self.option = option
+        self.color = color
     
     # allows Plot objects to behave as if they were inherited from plot
     def __getattr__(self, name):
@@ -246,7 +248,7 @@ class Legend(R.TLegend):
 # lumi is lumi text (top right), extra is text that follows CMS (top left)
 # ratiofactor is fraction of canvas devoted to ratio plot
 class Canvas(R.TCanvas):
-    def __init__(self, logx=False, logy=False, lumi='', ratioFactor=0, extra='Internal', cWidth=800, cHeight=600, fontcode='', fontscale=1.):
+    def __init__(self, logx=False, logy=False, lumi='', ratioFactor=0, extra='Internal', cWidth=800, cHeight=600, fontcode='', fontscale=1.,cmsPaper=False):
         self.cWidth      = cWidth
         self.cHeight     = cHeight
         self.fontcode    = fontcode
@@ -260,6 +262,7 @@ class Canvas(R.TCanvas):
         self.plotList    = []
         self.axesDrawn   = False
         self.fontsize    = 0.04
+        self.cmsPaper    = cmsPaper
 
         FontDict = {'' : 4, 'i' : 5, 'b' : 6, 'bi' : 7}
         self.font = 10 * FontDict[fontcode] + 2
@@ -267,6 +270,16 @@ class Canvas(R.TCanvas):
         setStyle(self.cWidth,self.cHeight,self.font,self.fontsize*fontscale*1.5)
 
         R.TCanvas.__init__(self, 'c','Canvas',self.cWidth,self.cHeight)
+        if self.cmsPaper:
+            self.Range(1.592761, -5.173913, 3.533814, 6.006211)
+            self.SetFillColor(0)
+            self.SetBorderMode(0)
+            self.SetBorderSize(2)
+            self.SetRightMargin(0.07)
+            self.SetLeftMargin(0.13)
+            self.SetFrameBorderMode(0)
+            self.SetTopMargin(0.085)
+            self.SetBottomMargin(0.11)
 
         self.mainPad = R.TPad('main','Main',0,self.ratioFactor,1,1)
         
@@ -275,12 +288,25 @@ class Canvas(R.TCanvas):
             lMargin = self.GetLeftMargin()
             rMargin = self.GetRightMargin()
 
-            self.mainPad.SetBottomMargin(0.04)
-            self.mainPad.SetRightMargin (tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
-            self.ratPad = R.TPad('ratio','Ratio',0,0,1,self.ratioFactor)
-            self.ratPad.SetTopMargin(0.04)
-            self.ratPad.SetBottomMargin(lMargin * (1 - self.ratioFactor)/self.ratioFactor)
-            self.ratPad.SetRightMargin (tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
+            if self.cmsPaper:
+                self.mainPad.SetFillStyle(4000)
+                self.SetFillColor(0)
+                self.SetBorderMode(0)
+                self.mainPad.SetBottomMargin(0.05)
+                self.mainPad.SetRightMargin (0.05)
+                self.mainPad.SetLeftMargin (0.13)
+                self.ratPad = R.TPad('ratio','Ratio',0,0,1,1.14*self.ratioFactor)
+                self.ratPad.SetTopMargin(0.05)
+                self.ratPad.SetBottomMargin(0.36)
+                self.ratPad.SetRightMargin (0.05)
+                self.ratPad.SetLeftMargin (0.13)
+            else:
+                self.mainPad.SetBottomMargin(0.04)
+                self.mainPad.SetRightMargin (tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
+                self.ratPad = R.TPad('ratio','Ratio',0,0,1,self.ratioFactor)
+                self.ratPad.SetTopMargin(0.04)
+                self.ratPad.SetBottomMargin(lMargin * (1 - self.ratioFactor)/self.ratioFactor)
+                self.ratPad.SetRightMargin (tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
             self.ratPad.Draw()
             self.ratAxesDrawn = False
             self.ratLegend = None
@@ -364,8 +390,19 @@ class Canvas(R.TCanvas):
             print 'Invalid legend position string; defaulting to top-right'
             pos = 'tr'
 
-        self.legend = Legend(X1[pos[1]], Y1[pos[0]], X2[pos[1]], Y2[pos[0]], pos)
-        self.legend.SetTextSize(fontscale * self.fontsize)
+        if self.cmsPaper:
+            self.legend = Legend(0.516741+0.02, 0.57, 0.870536-0.055, 0.88,'tr')#, "", "brNDC")
+            self.legend.SetBorderSize(0)
+            self.legend.SetLineColor(1)
+            self.legend.SetLineStyle(1)
+            self.legend.SetLineWidth(1)
+            self.legend.SetFillColor(19)
+            self.legend.SetTextFont(42)
+            self.legend.SetTextSize(0.045)
+
+        else:
+            self.legend = Legend(X1[pos[1]], Y1[pos[0]], X2[pos[1]], Y2[pos[0]], pos)
+            self.legend.SetTextSize(fontscale * self.fontsize)
         self.legend.SetFillStyle(0)
 
         if autoOrder:
@@ -412,64 +449,96 @@ class Canvas(R.TCanvas):
     # ytit is the y axis title, xtit is the x axis title, option is the draw option
     # cjs - add an option to make the ratio (a-b)/b
     # cjs - add option to plot multiple ratios on same plot
-    def addRatioPlot(self, topPlot, bottomPlot, color=R.kBlack, legName='', legType='pe', option='', ytit='Data/MC', xtit='', zeroed=False, plusminus=0.5):
+    def addRatioPlot(self, topPlot, bottomPlot, color=R.kBlack, legName='', legType='pe', option='', ytit='Data/MC', xtit='', zeroed=False, plusminus=0.5,include_zero_bins=True):
         if self.ratioFactor == 0: return
         center = 0. if zeroed else 1.
-        self.cd()
-        self.ratPad.cd()
-        self.ratPad.SetLogx(self.logx)
-        self.ratPad.SetGridy(R.kTRUE)
-        factor = (1 - self.ratioFactor)/self.ratioFactor
+        #factor = 1.75*(1 - self.ratioFactor)/self.ratioFactor
+        #factor = 1.5*(1 - self.ratioFactor)/self.ratioFactor
+        factor = self.mainPad.GetHNDC()/self.ratPad.GetHNDC() if self.cmsPaper else (1 - self.ratioFactor)/self.ratioFactor
 
-        self.rat = Plot(topPlot.Clone(),legName=legName,legType=legType,option=option)
-        bot = bottomPlot.Clone()
-        self.rat.Divide(bot)
-        if zeroed:
-            nbins = rat.GetNbinsX()
-            for ibin in range(1, nbins):
-                f_bin = rat.GetBinContent(ibin)
-                self.rat.SetBinContent(ibin, f_bin-1.)
+        #rat,y,eyl,eyh = binomial_divide(topPlot,bottomPlot,confint=clopper_pearson_poisson_means, force_lt_1=False)
 
+        rat = poisson_intervalize_ratio(topPlot,bottomPlot,zero_ex=self.cmsPaper,include_zero_bins=include_zero_bins,zeroed=zeroed)
 
-        factor = 1.5*factor
+        self.rat = Plot(rat,legName=legName,legType=legType,option=option)
+
+        #rat = topPlot.Clone('ratio')
+        #rat.SetBinErrorOption(R.TH1.kPoisson)
+        #bot = bottomPlot.Clone()
+        #for ibin in range(1,bot.GetNbinsX()+1):
+        #    bot.SetBinError(ibin,0.)
+        #rat.Divide(bot)
+        #if zeroed:
+        #    nbins = rat.GetNbinsX()
+        #    for ibin in range(1, nbins):
+        #        f_bin = rat.GetBinContent(ibin)
+        #        rat.SetBinContent(ibin, f_bin-1.)
+
+        #self.rat = Plot(rat,legName=legName,legType=legType,option=option)
+
+        #factor = 1.5*factor
         if not self.ratAxesDrawn:
+            self.cd()
+            self.ratPad.cd()
+            self.ratPad.SetLogx(self.logx)
+            self.ratPad.SetGridy(R.kTRUE)
             self.firstRatioPlot = self.rat
 
+            self.rat.Draw('A'+option)
+            self.ratAxesDrawn = True
             if (xtit != ''):
                 self.rat.GetXaxis().SetTitle(xtit)
-            SCALE(self.rat, 'TitleSize', factor, Axes='XY')
-            SCALE(self.rat, 'LabelSize', factor, Axes='XY')
-            SCALE(self.rat, 'TickLength', factor, Axes='X')
-            #self.rat.GetXaxis().CenterTitle()
+            if self.cmsPaper:
+                self.rat.GetXaxis().SetTitleSize(0.06*factor)
+                self.rat.GetXaxis().SetTitleOffset(0.9)
+                self.rat.GetXaxis().SetLabelSize(0.044*factor)
+                self.rat.GetXaxis().SetTickLength(0.07)
+                self.rat.GetYaxis().SetNdivisions(305)
+                self.rat.GetYaxis().SetTitleSize(0.041*factor)
+                self.rat.GetYaxis().SetLabelSize(0.05*factor*0.96*1.1)
+                self.rat.GetYaxis().SetTitleOffset(0.54)
+                self.rat.GetYaxis().SetLabelOffset(0.012)
+                self.rat.GetXaxis().SetTitleFont(42)
+                self.rat.GetYaxis().SetTitleFont(42)
+                self.rat.GetXaxis().SetLabelFont(42)
+                self.rat.GetYaxis().SetLabelFont(42)
+                self.rat.GetYaxis().SetRangeUser(center-plusminus,center+plusminus)
 
-            self.rat.GetYaxis().SetTitle(ytit)
-            SCALE(self.rat, 'TitleOffset', 1./factor*1.5, Axes='Y')
-            self.rat.GetYaxis().SetTickLength (0.01)
-            self.rat.GetXaxis().SetTitleFont(42)
-            self.rat.GetYaxis().SetTitleFont(42)
-            self.rat.GetXaxis().SetLabelFont(42)
-            self.rat.GetYaxis().SetLabelFont(42)
-            #self.rat.GetYaxis().CenterTitle()
-            self.rat.GetYaxis().SetNdivisions(505)
-            self.rat.GetYaxis().SetRangeUser(center-plusminus,center+plusminus)
+            else:
+                SCALE(self.rat, 'TitleSize', factor, Axes='XY')
+                SCALE(self.rat, 'LabelSize', factor, Axes='XY')
+                SCALE(self.rat, 'TickLength', factor, Axes='X')
 
-            self.rat.Draw(option)
-            self.ratAxesDrawn = True
+                SCALE(self.rat, 'TitleOffset', 1./factor, Axes='Y')
+                self.rat.GetYaxis().SetTickLength (0.01)
+                self.rat.GetXaxis().SetTitleFont(42)
+                self.rat.GetYaxis().SetTitleFont(42)
+                self.rat.GetXaxis().SetLabelFont(42)
+                self.rat.GetYaxis().SetLabelFont(42)
+                self.rat.GetYaxis().SetNdivisions(505)
+                self.rat.GetYaxis().SetRangeUser(center-plusminus,center+plusminus)
 
-            low = self.rat.GetXaxis().GetXmin()
-            up  = self.rat.GetXaxis().GetXmax()
-            x   = n.array([ low, up ])
-            y   = n.array([ center , center ])
-            self.gr = R.TGraph(2,x,y)
-            self.gr.SetLineColor(R.kRed)
-            self.gr.SetLineStyle(3)
-            self.gr.SetLineWidth(2)
-            self.gr.Draw('C same')
+                low = topPlot.GetXaxis().GetXmin()
+                up  = topPlot.GetXaxis().GetXmax()
+                x   = n.array([ low , up  ])
+                y   = n.array([ center , center ])
+                self.gr = R.TGraph(2,x,y)
+                self.gr.SetLineColor(R.kRed)
+                self.gr.SetLineStyle(3)
+                self.gr.SetLineWidth(2)
+                self.gr.Draw('C same')
+                #self.rat.Draw(option+' same')
+        else:
+            self.rat.Draw(option+' same')
 
-        self.rat.Draw(option+' same')
+        #self.rat.SetMarkerSize(0.9)
+        self.rat.GetYaxis().SetTitle(ytit)
+        #self.rat.GetXaxis().SetLimits(topPlot.GetBinLowEdge(1),topPlot.GetBinLowEdge(topPlot.GetNbinsX())+topPlot.GetBinWidth(topPlot.GetNbinsX()))
+        self.rat.GetXaxis().SetLimits(topPlot.GetXaxis().GetXmin(),topPlot.GetXaxis().GetXmax())
+        self.rat.GetYaxis().SetLimits(center-plusminus,center+plusminus)
         self.rat.SetMarkerColor(color)
         self.rat.SetLineColor(color)
-        self.ratPad.RedrawAxis()
+        #self.ratPad.RedrawAxis()
         self.ratList.append(self.rat)
 
     # creates the legend in the ratio plot pad
@@ -651,7 +720,10 @@ class Canvas(R.TCanvas):
                 self.SaveAs(name+extList)
         if type(extList) == list:
             for ext in extList:
-                self.SaveAs(name+ext)
+                if ext=='.C':
+                    self.SaveSource(name+ext)
+                else:
+                    self.SaveAs(name+ext)
     
     # deletes the ROOT TCanvas pointer
     # This is to prevent lousy "RuntimeWarning: Deleting canvas with same name: c" errors
@@ -659,8 +731,8 @@ class Canvas(R.TCanvas):
         R.gROOT.ProcessLine('delete gROOT->FindObject("c");')
 
     # performs a standard finishCanvas, save, and delete
-    def cleanup(self, filename, extrascale=1., mode=''):
+    def cleanup(self, filename, extrascale=1., mode='', extList=''):
         self.finishCanvas(mode=mode,extrascale=extrascale)
         #R.SetOwnership(self, False)
-        self.save(filename)
+        self.save(filename,extList=extList)
         self.deleteCanvas()

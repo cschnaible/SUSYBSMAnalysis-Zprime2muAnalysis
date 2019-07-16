@@ -18,6 +18,14 @@ except IndexError:
     print 'usage: utils.py command [extra]'
     sys.exit(1)
 
+
+cmdMap = {
+        'resubmitdata':'resubmit',
+        'checkdata':'status',
+        'reportdata':'report',
+        'getdata':'getoutput',
+        }
+
 ex = '_'+extra[0] if len(extra)>0 else ''
 def do(cmd):
     print cmd
@@ -51,29 +59,53 @@ elif cmd == 'maketagdirs':
         do('ln -s %s/%s %s' % (extra, which, which))
 
 elif cmd == 'checkevents':
-    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
+    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples18 as samples
     for sample in samples:
         print sample.name
         do('grep TrigReport crab/crab_datamc_%s/res/*stdout | grep \' p$\' | sed -e "s/ +/ /g" | awk \'{ s += $4; t += $5; u += $6; } END { print "summary: total: ", s, "passed: ", t, "failed: ", u }\'' % sample.name)
 
 
 elif cmd in ['status','report','resubmit','kill','getoutput']:
-    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
+    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples18,samples17,samples16
+    if '2016' in ex: samples=samples16
+    elif '2017' in ex: samples=samples17
+    else : samples=samples18
     for sample in samples:
         print sample.name
         name = sample.name
         do('crab %(cmd)s -d crab/crab_ana_datamc_%(name)s%(ex)s ' %locals())
+        #do('crab %(cmd)s -d crab/crab_ana_genmc_%(name)s%(ex)s ' %locals())
 
 elif cmd=='haddmc':
-    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
+    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples18,samples17,samples16
+    sdir = 'mc'
+    if '2016' in ex: 
+        samples=samples16
+        sdir+='_2016'
+    elif '2017' in ex: 
+        samples=samples17
+        sdir+='_2017'
+    else : samples=samples18
     for sample in samples:
-        print sample.name
         name = sample.name
+        if 'dy' not in name:continue
+        if 'Jets' in name: continue
+        if 'Inclusive' in name: continue
+        if 'Tau' in name: continue
+        print sample.name
         date = extra[0]
         dataset = sample.dataset.split('/')[1]
         files = glob.glob('/eos/cms/store/user/cschnaib/%(dataset)s/ana_datamc_%(name)s_%(date)s/*/*/zp2mu_histos*root' % locals())
+        #files = glob.glob('/eos/cms/store/user/cschnaib/%(dataset)s/ana_genmc_%(name)s_%(date)s/*/*/gen_zp2mu_histos*root' % locals())
         print name,date,dataset,len(files)
-        hadd('mc/ana_datamc_%s.root' % name, files)
+        print files[0]
+        hadd(sdir+'/ana_datamc_%s_GE.root' % name, files)
+
+elif cmd=='all':
+    full = glob.glob('crab/*{name}*'.format(name=ex))
+    for i in full:
+        #print 'crab %s %s'%(extra[1],i)
+        do('crab kill %s'%i)
         
 #elif cmd == 'report':
 #    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
@@ -99,35 +131,21 @@ elif cmd=='haddmc':
 #        print sample.name
 #        do('crab getoutput -d crab/crab_ana_datamc_%(name)s --checksum=no ' % sample)
 
-elif cmd=='resubmitdata':
+elif cmd in cmdMap.keys():
     print cmd
     extra = extra[0] if extra else ''
-    dirs = glob.glob('crab/crab_ana_datamc_Run2018MuonsOnly_SingleMuonRun2018*%(ex)s'%locals())
+    if '2016' in ex:
+        name = 'Run2016MuonsOnly_SingleMuonRun2016'
+    elif '2017' in ex:
+        name = 'Run2017MuonsOnly_SingleMuonRun2017'
+    else:
+        name = 'Run2018MuonsOnly_SingleMuonRun2018'
+        print 
+    dirs = glob.glob('crab/crab_ana_datamc_'+name+'*%(ex)s'%locals())
     for d in dirs:
         print d
-        do('crab resubmit --maxmemory 4000 %s'%d)
-elif cmd=='checkdata':
-    print cmd
-    extra = extra[0] if extra else ''
-    dirs = glob.glob('crab/crab_ana_datamc_Run2018MuonsOnly_SingleMuonRun2018*%(ex)s'%locals())
-    for d in dirs:
-        print d
-        do('crab status %s'%d)
-elif cmd=='reportdata':
-    print cmd
-    extra = extra[0] if extra else ''
-    dirs = glob.glob('crab/crab_ana_datamc_Run2018MuonsOnly_SingleMuonRun2018*_%s'%extra)
-    for d in dirs:
-        print d
-        do('crab report %s'%d)
-elif cmd=='getdata':
-    print cmd
-    extra = extra[0] if extra else ''
-    dirs = glob.glob('crab/crab_ana_datamc_Run2018MuonsOnly_SingleMuonRun2018*_%s'%extra)
-    for d in dirs:
-        print d
-        do('crab getoutput %s'%d)
-
+        do('crab '+cmdMap[cmd]+' %s'%d)
+        print '\n','*'*30,'\n'
 
 #elif cmd == 'publishmc':
 #    from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples

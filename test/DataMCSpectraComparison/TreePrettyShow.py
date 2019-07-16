@@ -51,7 +51,7 @@ n(jets) = {njets:<2}\
         MET=t.met_pt,MET_phi=t.met_phi,njets=int(t.nJets))
 print massPrint
 # always 4 jets listed :(
-for i in range(4):#range(t.nJets):
+for i in range(t.nJets):
     if t.jet_pt[i]<0: continue
     print 'jet',i+1,'{jet_pt:6.2f} GeV ({jet_eta:>4.2f},{jet_phi:>4.2f})'.format(jet_pt=t.jet_pt[i],jet_eta=t.jet_eta[i],jet_phi=t.jet_phi[i])
 
@@ -72,9 +72,12 @@ lines = [
         ('rel iso',t.lep_sumPt[0]/t.lep_tk_pt[0],'',t.lep_sumPt[1]/t.lep_tk_pt[1],''),
         ('vmh(tP)',t.lep_tuneP_numberOfValidMuonHits[0],'',t.lep_tuneP_numberOfValidMuonHits[1],''),
         ('vmh(glb)',t.lep_glb_numberOfValidMuonHits[0],'',t.lep_glb_numberOfValidMuonHits[1],''),
-        ('vms(glb)',t.lep_numberOfMatchedStations[0],'',t.lep_numberOfMatchedStations[1],''),
         ('vpxh(glb)',t.lep_glb_numberOfValidPixelHits[0],'',t.lep_glb_numberOfValidPixelHits[1],''),
         ('vtl(glb)',t.lep_glb_numberOfValidTrackerLayers[0],'',t.lep_glb_numberOfValidTrackerLayers[1],''),
+        ('match st',t.lep_numberOfMatchedStations[0],'',t.lep_numberOfMatchedStations[1],''),
+        #('exp match st',t.lep_expectedNnumberOfMatchedStations[0],'',t.lep_expectedNnumberOfMatchedStations[1],''),
+        ('match rpc',t.lep_numberOfMatchedRPCLayers[0],'',t.lep_numberOfMatchedRPCLayers[1],''),
+        ('st mask',t.lep_stationMask[0],'',t.lep_stationMask[1],''),
         ('RC A',Am,'',Ap,''),
         ('RC M',Mm,'',Mp,''),
         ('RC corr',Cm,'',Cp,''),
