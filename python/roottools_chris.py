@@ -40,7 +40,15 @@ def poisson_interval(nobs, alpha=(1-0.6827)/2, beta=(1-0.6827)/2):
     upper = 0.5 * ROOT.Math.chisquared_quantile_c(beta, 2*(nobs+1))
     return lower, upper
 
-def poisson_intervalize(h, zero_x=False, include_zero_bins=False):
+def divide_bin_width(h):
+    for i in range(1,h.GetNbinsX()+1):
+        c = h.GetBinContent(i)
+        w = h.GetXaxis().GetBinUpEdge(i) - h.GetXaxis().GetBinLowEdge(i)
+        e = h.GetBinError(i)
+        h.SetBinContent(i,c/w)
+        h.SetBinError(i,e/w)
+
+def poisson_intervalize(h, zero_ex=False, include_zero_bins=False, bin_width=False):
     h2 = ROOT.TGraphAsymmErrors(h)
     for i in xrange(1, h.GetNbinsX()+1):
         c = h.GetBinContent(i)
@@ -49,11 +57,22 @@ def poisson_intervalize(h, zero_x=False, include_zero_bins=False):
         l,u = poisson_interval(c)
         # i-1 in the following because ROOT TGraphs count from 0 but
         # TH1s count from 1
-        if zero_x:
+        if zero_ex:
             h2.SetPointEXlow(i-1, 0)
             h2.SetPointEXhigh(i-1, 0)
-        h2.SetPointEYlow(i-1, c-l)
-        h2.SetPointEYhigh(i-1, u-c)
+        if bin_width:
+            w = h.GetXaxis().GetBinUpEdge(i) - h.GetXaxis().GetBinLowEdge(i)
+            x = h.GetXaxis().GetBinLowEdge(i) + h.GetXaxis().GetBinWidth(i)/2
+            eyl = (c-l)/w
+            eyh = (u-c)/w
+            c = c/w
+            h2.SetPoint(i-1,x,c)
+        else:
+            eyl = c-l
+            eyh = u-c
+            #h2.SetPoint(i-1,c)
+        h2.SetPointEYlow(i-1, eyl)
+        h2.SetPointEYhigh(i-1, eyh)
     return h2
 
 def clopper_pearson(n_on, n_tot, alpha=1-0.6827, equal_tailed=True):
@@ -101,6 +120,7 @@ def binomial_divide(h1, h2, confint=clopper_pearson, force_lt_1=True):
         if s > t and force_lt_1:
             print 'warning: bin %i has p_hat > 1, in interval forcing p_hat = 1' % ibin
             s = t
+            print h1.GetName(),h2.GetName()
         rat, a,b = confint(s,t)
         #print ibin, s, t, a, b
 
@@ -129,11 +149,15 @@ def core_gaussian(hist, factor, i=[0]):
 def cumulative_histogram(h, type='ge'):
     """Construct the cumulative histogram in which the value of each
     bin is the tail integral of the given histogram.
+    CJS : for histograms of variable bin widths clone original and reset instead
+    of making a new one
     """
     
+    #hc = ROOT.TH1F(h.GetName() + '_cumulative_' + type, '', nb, h.GetXaxis().GetXmin(), h.GetXaxis().GetXmax())
+    #hc.Sumw2() # assume it already has Sumw2 called
     nb = h.GetNbinsX()
-    hc = ROOT.TH1F(h.GetName() + '_cumulative_' + type, '', nb, h.GetXaxis().GetXmin(), h.GetXaxis().GetXmax())
-    hc.Sumw2()
+    hc = h.Clone(h.GetName()+'_cumulative_'+type)
+    hc.Reset('ICESM')
     if type == 'ge':
         first, last, step = nb+1, 0, -1
     elif type == 'le':
@@ -405,7 +429,7 @@ class plot_saver:
                 html.write('<a href="%s">%10i%32s%s</a>\n' % (save, i, 'change directory: ', save))
                 continue
 
-            fn, log, root, pdf, pdf_log, C, C_log = save
+            fn, log, root, pdf, pdf_log, C_fn, C_log_fn = save
 
             bn = os.path.basename(fn)
             html.write('<a href="#%s">%10i</a> ' % (self.anchor_name(fn), i))
@@ -425,12 +449,12 @@ class plot_saver:
                 html.write(' <a href="%s">pdf_log</a>' % os.path.basename(pdf_log))
             else:
                 html.write('     ')
-            if C:
-                html.write(' <a href="%s">C</a>' % os.path.basename(C))
+            if C_fn:
+                html.write(' <a href="%s">C</a>' % os.path.basename(C_fn))
             else:
                 html.write('     ')
-            if C_log:
-                html.write(' <a href="%s">C_log</a>' % os.path.basename(C_log))
+            if C_log_fn:
+                html.write(' <a href="%s">C_log</a>' % os.path.basename(C_log_fn))
             else:
                 html.write('     ')
             html.write('  <a href="%s">%s</a>' % (bn, bn))
@@ -439,7 +463,7 @@ class plot_saver:
         for i, save in enumerate(self.saved):
             if type(save) == str:
                 continue # skip dir entries
-            fn, log, root, pdf, pdf_log, C, C_log = save
+            fn, log, root, pdf, pdf_log, C_fn, C_log_fn = save
             bn = os.path.basename(fn)
             html.write('<h4 id="%s">%s</h4><br>\n' % (self.anchor_name(fn), bn.replace('.png', '')))
             if log:
@@ -492,14 +516,17 @@ class plot_saver:
             self.c.SaveAs(pdf_log)
             self.c.SetLogy(0)
         if C:
-            C = os.path.join(self.plot_dir, n + '.C')
-            self.c.SaveAs(C)
+            C_fn = os.path.join(self.plot_dir, n + '.C')
+            self.c.SaveAs(C_fn)
+        else:
+            C_fn=False
         if C_log:
             self.c.SetLogy(1)
-            C_log = os.path.join(self.plot_dir, n + '_log.C')
-            self.c.SaveAs(C_log)
+            C_log_fn = os.path.join(self.plot_dir, n + '_log.C')
+            self.c.SaveAs(C_log_fn)
             self.c.SetLogy(0)
-        self.saved.append((fn, log, root, pdf, pdf_log, C, C_log))
+        else: C_log_fn = False
+        self.saved.append((fn, log, root, pdf, pdf_log, C_fn, C_log_fn))
 
 def rainbow_palette(num_colors=500):
     """Make a rainbow palette with the specified number of
@@ -576,10 +603,12 @@ def set_zp2mu_style(date_pages=False):
     ROOT.gStyle.SetStatW(0.25)
     ROOT.gStyle.SetStatFormat('6.4g')
     ROOT.gStyle.SetPalette(1)
-    #ROOT.gStyle.SetTitleFont(52, 'XY')
-    #ROOT.gStyle.SetLabelFont(52, 'XY')
-    #ROOT.gStyle.SetStatFont(52)
+    ROOT.gStyle.SetTitleFont(42, 'XYZ')
+    ROOT.gStyle.SetLabelFont(42, 'XYZ')
+    ROOT.gStyle.SetStatFont(42)
+    ROOT.gStyle.SetLegendFont(42)                # helvetica normal
     ROOT.gErrorIgnoreLevel = 1001 # Suppress TCanvas::SaveAs messages.
+    ROOT.TGaxis.SetExponentOffset(-0.06, 0.02, "y")
 
 def setTDRStyle():
 #- From PhysicsTools/Utilities/macros/setTDRStyle.C
@@ -589,10 +618,10 @@ def setTDRStyle():
 # For the canvas:
     tdrStyle.SetCanvasBorderMode(0)
     tdrStyle.SetCanvasColor(ROOT.kWhite)
-    tdrStyle.SetCanvasDefH(600) #Height of canvas
-    tdrStyle.SetCanvasDefW(600) #Width of canvas
-    tdrStyle.SetCanvasDefX(0)   #POsition on screen
-    tdrStyle.SetCanvasDefY(0)
+    #tdrStyle.SetCanvasDefH(600) #Height of canvas
+    #tdrStyle.SetCanvasDefW(600) #Width of canvas
+    #tdrStyle.SetCanvasDefX(0)   #POsition on screen
+    #tdrStyle.SetCanvasDefY(0)
 
 # For the Pad:
     tdrStyle.SetPadBorderMode(0)
@@ -657,12 +686,12 @@ def setTDRStyle():
 
 # Margins:
     tdrStyle.SetPadTopMargin(0.05)
-    tdrStyle.SetPadBottomMargin(0.13)
-    tdrStyle.SetPadLeftMargin(0.13)
-    tdrStyle.SetPadRightMargin(0.05)
+    tdrStyle.SetPadBottomMargin(0.15)
+    tdrStyle.SetPadLeftMargin(0.15)
+    tdrStyle.SetPadRightMargin(0.06)
 
 # For the Global title:
-    # tdrStyle.SetOptTitle(0)
+    tdrStyle.SetOptTitle(0)
     tdrStyle.SetTitleFont(42)
     tdrStyle.SetTitleColor(1)
     tdrStyle.SetTitleTextColor(1)
@@ -679,16 +708,13 @@ def setTDRStyle():
     tdrStyle.SetTitleColor(1, "XYZ")
     tdrStyle.SetTitleFont(42, "XYZ")
     tdrStyle.SetTitleSize(0.06, "XYZ")
-    # tdrStyle.SetTitleXSize(Float_t size = 0.02) # Another way to set the size?
-    # tdrStyle.SetTitleYSize(Float_t size = 0.02)
-    tdrStyle.SetTitleXOffset(0.9)
-    tdrStyle.SetTitleYOffset(1.05)
-    # tdrStyle.SetTitleOffset(1.1, "Y") # Another way to set the Offset
+    tdrStyle.SetTitleOffset(1,'X')              # default 1
+    tdrStyle.SetTitleOffset(1.1,'Y')           # default 1
 
 # For the axis labels:
     tdrStyle.SetLabelColor(1, "XYZ")
     tdrStyle.SetLabelFont(42, "XYZ")
-    tdrStyle.SetLabelOffset(0.007, "XYZ")
+    tdrStyle.SetLabelOffset(0.005, "XYZ")
     tdrStyle.SetLabelSize(0.05, "XYZ")
 
 # For the axis:

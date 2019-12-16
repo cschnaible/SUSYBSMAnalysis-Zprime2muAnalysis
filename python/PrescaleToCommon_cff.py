@@ -23,6 +23,7 @@ PrescaleToCommonMiniAOD = cms.EDFilter('PrescaleToCommon_miniAOD',
                                 overall_prescale = cms.int32(1),
                                 assume_simulation_has_prescale_1 = cms.bool(True), # Current PAT tuples of MC samples don't have both L1 branches :-(                                
                                 debugInfo = cms.bool(False),
+                                no_common = cms.bool(False),
 			        
 )
 

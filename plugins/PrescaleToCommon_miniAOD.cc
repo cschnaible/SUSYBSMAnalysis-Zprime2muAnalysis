@@ -29,6 +29,7 @@ private:
   const int overall_prescale;
   const bool assume_simulation_has_prescale_1;
   const bool debugInfo;
+  const bool no_common;
   HLTConfigProvider hlt_cfg;
   TH1F* randoms;
   bool _disable;
@@ -46,6 +47,7 @@ PrescaleToCommon_miniAOD::PrescaleToCommon_miniAOD(const edm::ParameterSet& cfg)
     overall_prescale(cfg.getParameter<int>("overall_prescale")),
     assume_simulation_has_prescale_1(cfg.getParameter<bool>("assume_simulation_has_prescale_1")),
     debugInfo(cfg.getParameter<bool>("debugInfo")),
+    no_common(cfg.getParameter<bool>("no_common")),
     _disable(cfg.getUntrackedParameter<bool>("disable",false)),
     hltPrescaleProvider_(cfg, consumesCollector(), *this)
 {
@@ -133,8 +135,14 @@ bool PrescaleToCommon_miniAOD::filter(edm::Event& event, const edm::EventSetup& 
   edm::Handle<edm::TriggerResults> hlt_results;
   // event.getByLabel(edm::InputTag("TriggerResults", "", hlt_process_name), hlt_results);
   event.getByLabel(TriggerResults_src, hlt_results);
-  if (!hlt_results->accept(path_index))
+  // if we do not want a common prescale, return the trigger result
+  if (no_common) {
+      return hlt_results->accept(path_index);
+  }
+
+  if (!hlt_results->accept(path_index)) {
     return false;
+  }
   if (debugInfo) {
       std::cout<<" hlt_results->accept(path_index) "<<hlt_results->accept(path_index)<<std::endl;
       // HLTConfigProvider does not have these methods anymore. They were moved to HLTPrescaleProvider in 2015.

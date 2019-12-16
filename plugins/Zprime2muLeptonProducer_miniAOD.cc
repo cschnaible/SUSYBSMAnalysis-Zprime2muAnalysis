@@ -673,17 +673,30 @@ void Zprime2muLeptonProducer_miniAOD::produce(edm::Event& event, const edm::Even
     for(pat::TriggerObjectStandAlone obj : *trigger_summary_src) {
       obj.unpackPathNames(names);
       obj.unpackFilterLabels(event, *triggerBits); // for 2017~
+
       for (unsigned h = 0; h < obj.filterLabels().size(); ++h) {
 
         for(unsigned i_f=0; i_f<trigger_filters.size(); ++i_f) {
           if (obj.filterLabels()[h] == trigger_filters[i_f]){ 
-            vec_L3_muons[i_f].push_back(obj);
+              vec_L3_muons[i_f].push_back(obj);
+              /*
+            if (obj.hasPathLastFilterAccepted()==true) {
+              vec_L3_muons[i_f].push_back(obj);
+            }
+            */
           }
         }
 
         for(unsigned i_f=0; i_f<prescaled_trigger_filters.size(); ++i_f) {
           if (obj.filterLabels()[h] == prescaled_trigger_filters[i_f]){ 
-            vec_prescaled_L3_muons[i_f].push_back(obj);
+              vec_prescaled_L3_muons[i_f].push_back(obj);
+              /*
+              std::cout << obj.filterLables()[h] << " " << prescaled_trigger_filters[i_f] << " " 
+                  obj.pathNames()[h] << " " << prescaled_trigger_path_names[i_f] << std::endl;
+            if (obj.hasPathLastFilterAccepted()==true) {
+              vec_prescaled_L3_muons[i_f].push_back(obj);
+            }
+            */
           }
         }
 

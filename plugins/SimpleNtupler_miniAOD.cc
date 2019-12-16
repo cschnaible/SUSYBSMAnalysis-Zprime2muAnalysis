@@ -362,8 +362,8 @@ SimpleNtupler_miniAOD::SimpleNtupler_miniAOD(const edm::ParameterSet& cfg)
   tree->Branch("run", &t.run, "run/i");
   tree->Branch("lumi", &t.lumi, "lumi/i");
   tree->Branch("event", &t.event, "event/i");
-  tree->Branch("Mu27_prescale", &t.Mu27_prescale, "t.Mu27_prescale/F");
-  tree->Branch("L1_prescale", &t.L1_prescale, "t.L1_prescale/F");
+  tree->Branch("Mu27_prescale", &t.Mu27_prescale, "Mu27_prescale/F");
+  tree->Branch("L1_prescale", &t.L1_prescale, "L1_prescale/F");
   tree->Branch("beamspot_x", &t.beamspot_x, "beamspot_x/F");
   tree->Branch("beamspot_x_err", &t.beamspot_x_err, "beamspot_x_err/F");
   tree->Branch("beamspot_y", &t.beamspot_y, "beamspot_y/F");
