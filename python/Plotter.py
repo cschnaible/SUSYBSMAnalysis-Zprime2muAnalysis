@@ -391,14 +391,17 @@ class Canvas(R.TCanvas):
             pos = 'tr'
 
         if self.cmsPaper:
-            self.legend = Legend(0.516741+0.02, 0.57, 0.870536-0.055, 0.88,'tr')#, "", "brNDC")
+            #self.legend = Legend(0.516741+0.02, 0.57, 0.870536-0.055, 0.88,'tr')#, "", "brNDC")
+            #self.legend = Legend(0.516741-0.08, 0.55, 0.870536-0.055, 0.88,'tr')#, "", "brNDC")
+            self.legend = Legend(0.46, 0.55, 0.870536-0.055, 0.88,'tr')#, "", "brNDC")
             self.legend.SetBorderSize(0)
             self.legend.SetLineColor(1)
             self.legend.SetLineStyle(1)
             self.legend.SetLineWidth(1)
             self.legend.SetFillColor(19)
+            self.legend.SetFillStyle(0)
             self.legend.SetTextFont(42)
-            self.legend.SetTextSize(0.045)
+            self.legend.SetTextSize(0.055)
 
         else:
             self.legend = Legend(X1[pos[1]], Y1[pos[0]], X2[pos[1]], Y2[pos[0]], pos)
@@ -449,7 +452,7 @@ class Canvas(R.TCanvas):
     # ytit is the y axis title, xtit is the x axis title, option is the draw option
     # cjs - add an option to make the ratio (a-b)/b
     # cjs - add option to plot multiple ratios on same plot
-    def addRatioPlot(self, topPlot, bottomPlot, color=R.kBlack, legName='', legType='pe', option='', ytit='Data/MC', xtit='', zeroed=False, plusminus=0.5,include_zero_bins=True):
+    def addRatioPlot(self, topPlot, bottomPlot, color=R.kBlack, legName='', legType='pe', option='', ytit='Data/MC', xtit='', zeroed=False, plusminus=0.5,include_zero_bins=True,div='pois_ratio'):
         if self.ratioFactor == 0: return
         center = 0. if zeroed else 1.
         #factor = 1.75*(1 - self.ratioFactor)/self.ratioFactor
@@ -458,7 +461,11 @@ class Canvas(R.TCanvas):
 
         #rat,y,eyl,eyh = binomial_divide(topPlot,bottomPlot,confint=clopper_pearson_poisson_means, force_lt_1=False)
 
-        rat = poisson_intervalize_ratio(topPlot,bottomPlot,zero_ex=self.cmsPaper,include_zero_bins=include_zero_bins,zeroed=zeroed)
+        if div=='pois_ratio':
+            rat = poisson_intervalize_ratio(topPlot,bottomPlot,zero_ex=self.cmsPaper,include_zero_bins=include_zero_bins,zeroed=zeroed)
+        elif div=='normal':
+            rat = topPlot.Clone(topPlot.GetName()+'_rat')
+            rat.Divide(bottomPlot)
 
         self.rat = Plot(rat,legName=legName,legType=legType,option=option)
 
@@ -484,7 +491,10 @@ class Canvas(R.TCanvas):
             self.ratPad.SetGridy(R.kTRUE)
             self.firstRatioPlot = self.rat
 
-            self.rat.Draw('A'+option)
+            if div=='pois_ratio':
+                self.rat.Draw('A'+option)
+            elif div=='normal':
+                self.rat.Draw(option)
             self.ratAxesDrawn = True
             if (xtit != ''):
                 self.rat.GetXaxis().SetTitle(xtit)
@@ -533,7 +543,8 @@ class Canvas(R.TCanvas):
 
         #self.rat.SetMarkerSize(0.9)
         self.rat.GetYaxis().SetTitle(ytit)
-        #self.rat.GetXaxis().SetLimits(topPlot.GetBinLowEdge(1),topPlot.GetBinLowEdge(topPlot.GetNbinsX())+topPlot.GetBinWidth(topPlot.GetNbinsX()))
+        if div=='pois_ratio': 
+            self.rat.GetXaxis().SetLimits(topPlot.GetBinLowEdge(1),topPlot.GetBinLowEdge(topPlot.GetNbinsX())+topPlot.GetBinWidth(topPlot.GetNbinsX()))
         self.rat.GetXaxis().SetLimits(topPlot.GetXaxis().GetXmin(),topPlot.GetXaxis().GetXmax())
         self.rat.GetYaxis().SetLimits(center-plusminus,center+plusminus)
         self.rat.SetMarkerColor(color)

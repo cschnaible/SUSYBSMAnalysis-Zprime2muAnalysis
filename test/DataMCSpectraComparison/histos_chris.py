@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-ex = '20190711_again_2abc'
+ex = '20190716_sa_2'
 
 is2016 = False
 is2017 = False
@@ -43,9 +43,9 @@ process.source.fileNames = [
         #'/store/data/Run2017D/SingleMuon/MINIAOD/31Mar2018-v1/00000/04C38E6C-BF39-E811-9FA7-0CC47A4DEF06.root',
         # 2018
     #'/store/data/Run2018D/SingleMuon/MINIAOD/PromptReco-v2/000/322/068/00000/F8DCA3B9-41B0-E811-8B23-FA163E279E4C.root'
-    '/store/data/Run2018A/SingleMuon/MINIAOD/17Sep2018-v2/270000/40BFE1A5-BEFE-B34B-8836-4ADDB8966C78.root',
+    #'/store/data/Run2018A/SingleMuon/MINIAOD/17Sep2018-v2/270000/40BFE1A5-BEFE-B34B-8836-4ADDB8966C78.root',
     #'/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/90000/DD89AFA9-BD25-F346-939F-A9CC68A04B84.root',
-    #'/store/mc/RunIIAutumn18MiniAOD/ZToMuMu_NNPDF31_13TeV-powheg_M_50_120/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/120000/078DB2B1-40DD-634D-A3CF-D2E377CAFA48.root'
+    '/store/mc/RunIIAutumn18MiniAOD/ZToMuMu_NNPDF31_13TeV-powheg_M_50_120/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/120000/078DB2B1-40DD-634D-A3CF-D2E377CAFA48.root'
     #'/store/mc/RunIIAutumn18MiniAOD/ZToMuMu_NNPDF31_13TeV-powheg_M_2300_3500/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/120000/E341A5B4-928D-7C43-934E-8529706D5EEA.root',
     #'/store/mc/RunIIAutumn18MiniAOD/ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15_ext1-v2/110000/A4788EEA-F867-8349-985B-21AFDB0C9543.root',
     #'/store/mc/RunIIAutumn18MiniAOD/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/120000/8A620F3F-201E-7245-94DF-A9966919C1BD.root',
@@ -579,7 +579,8 @@ config.Data.unitsPerJob  = %(neventsperjob)s
     ''')
 
        
-        dyList = ['dy50to120','dy120to200','dy200to400','dy400to800','dy800to1400','dy1400to2300','dy2300to3500','dy3500to4500','dy4500to6000','dy6000toInf']
+        #dyList = ['dy50to120','dy120to200','dy200to400','dy400to800','dy800to1400','dy1400to2300','dy2300to3500','dy3500to4500','dy4500to6000','dy6000toInf']
+        dyList = ['dy400to800']
         #mcList = ['WW_50to200','WW_200to600','WW_600to1200_v1','WW_600to1200_v2','WW_600to1200_v3','WW_1200to2500','WW_2500toInf']
         #mcList += ['ttbar_lep_50to500_v1','ttbar_lep_50to500_v2','ttbar_lep_500to800_0to20','ttbar_lep_500to800_41to65','ttbar_lep_800to1200','ttbar_lep_1200to1800','ttbar_lep_1800toInf','ttbar_lep_500to800']
         mcList = ['WW_50to200','WW_200to600']
@@ -589,7 +590,8 @@ config.Data.unitsPerJob  = %(neventsperjob)s
             name = sample.name
             ana_dataset = sample.dataset
             if ana_dataset==None: continue
-            if name not in mcList: continue
+            #if name not in mcList: continue
+            if name not in dyList: continue
             #print name, ana_dataset
 
             new_py = open('histos_chris.py').read()
@@ -602,7 +604,7 @@ config.Data.unitsPerJob  = %(neventsperjob)s
             elif name in ['tW_v3','tbarW_v3','ZZTo2L2Q','ZZTo4L_ext2','ZZTo4L_ext1','ZZTo2L2Nu_ext2','ZZTo2L2Nu_ext1','WZTo2L2Q']:
                 neventsperjob = 200000
             else:
-                neventsperjob = 50000
+                neventsperjob = 10000
             print name,ana_dataset
             print sample.nevents,neventsperjob,sample.nevents/float(neventsperjob)
 

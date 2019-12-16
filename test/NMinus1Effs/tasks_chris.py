@@ -59,9 +59,17 @@ elif cmd == 'checkevents':
 
 elif cmd in ['status','report','resubmit','kill','getoutput']:
     from SUSYBSMAnalysis.Zprime2muAnalysis.MCSamples import samples
-    for sample in samples:
-        print sample.name
-        name = sample.name
+    mclist = ['dy50to120','dy120to200','dy200to400','dy400to800','dy800to1400','dy1400to2300',\
+            'dy2300to3500','dy3500to4500','dy4500to6000','dy6000toInf',\
+            'WZTo3LNu','WZTo2L2Q','ZZTo2L2Nu_ext1','ZZTo2L2Nu_ext2','ZZTo4L_ext1','ZZTo4L_ext2','ZZTo2L2Q',\
+            'tbarW_v3','tbarW_v2','tW_v3','tW_v2','dyTauTau_madgraph',\
+            'WW_50to200','WW_200to600','WW_600to1200_v1','WW_600to1200_v2','WW_600to1200_v3',\
+            'WW_1200to2500','WW_2500toInf',\
+            'ttbar_lep_50to500_v2','ttbar_lep_500to800_0to20','ttbar_lep_500to800_41to65',\
+            'ttbar_lep_500to800','ttbar_lep_1200to1800','ttbar_lep_1800toInf']
+    for sample in mclist:
+        print sample
+        name = sample
         do('crab %(cmd)s -d crab/crab_ana_nminus1_%(name)s%(ex)s ' %locals())
         
 #elif cmd == 'report':

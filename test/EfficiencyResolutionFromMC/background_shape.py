@@ -373,75 +373,82 @@ colors = {
         'powheg_nnlo':R.kViolet+1,
         }
 
-def do_fit_log(cat,dy,fits,hist):
-    name = dy+'_'+cat+'_'+str(args.year)+('_'+args.name if args.name else '')
-    lumberjack.setup_logger(name,savedir+'/'+name+'.log')
-    logger = logging.getLogger(name)
-    logger.info('\n'+'*'*30+'\n')
-    logger.info('Background Shape Parametrization')
-    logger.info('\n'+'*'*30+'\n')
-    logger.info(dy+' '+cat+' '+str(args.year))
-    for mass in ['low','high']:
-        logger.info('\n'+'*'*15+'\n')
-        logger.info(mass)
-        logger.info(fit_funcs[mass]['func'])
-        logger.info(str(fit_funcs[mass]['lims'][0])+' -- '+str(fit_funcs[mass]['lims'][1]))
-        for i in range(fits[mass].GetNpar()):
-            logger.info(str(i)+' '+fit_funcs[mass]['par'][i]+' '+str(fits[mass].GetParameter(i))+' +/- '+str(fits[mass].GetParError(i))+'\t\tRelative Uncertainty '+str(abs(fits[mass].GetParError(i)/fits[mass].GetParameter(i))))
-        logger.info('Chi2/ndof = '+str(fits[mass].GetChisquare())+' / '+str(fits[mass].GetNDF()))
-    logger.info('\n'+'*'*30+'\n')
+#def do_fit_log(cat,dy,fits,hist):
+#    name = dy+'_'+cat+'_'+str(args.year)+('_'+args.name if args.name else '')
+#    lumberjack.setup_logger(name,savedir+'/'+name+'.log')
+#    logger = logging.getLogger(name)
+#    logger.info('\n'+'*'*30+'\n')
+#    logger.info('Background Shape Parametrization')
+#    logger.info('\n'+'*'*30+'\n')
+#    logger.info(dy+' '+cat+' '+str(args.year))
+#    for mass in ['low','high']:
+#        logger.info('\n'+'*'*15+'\n')
+#        logger.info(mass)
+#        logger.info(fit_funcs[mass]['func'])
+#        logger.info(str(fit_funcs[mass]['lims'][0])+' -- '+str(fit_funcs[mass]['lims'][1]))
+#        for i in range(fits[mass].GetNpar()):
+#            logger.info(str(i)+' '+fit_funcs[mass]['par'][i]+' '+str(fits[mass].GetParameter(i))+' +/- '+str(fits[mass].GetParError(i))+'\t\tRelative Uncertainty '+str(abs(fits[mass].GetParError(i)/fits[mass].GetParameter(i))))
+#        logger.info('Chi2/ndof = '+str(fits[mass].GetChisquare())+' / '+str(fits[mass].GetNDF()))
+#    logger.info('\n'+'*'*30+'\n')
+#
+## Draw histograms+fits and residual
+#for cat in categories:
+#    for dy in dyMC[args.year]:
+#        canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation Preliminary',logy=True)
+#        plot = Plotter.Plot(sumHists[cat][dy],legName=legNames[cat],legType='l',option='hist')
+#        canvas.addMainPlot(plot)
+#        for mass in ['low','high']:
+#            fits[cat][dy][mass].SetLineColor(R.kRed)
+#            fits[cat][dy][mass].Draw('same')
+#        canvas.firstPlot.setTitles(X='m(#mu^{+}#mu^{#font[122]{\55}}) [GeV]',Y='XS / Sum of Weights')
+#        canvas.firstPlot.GetXaxis().SetRangeUser(0,6500)
+#        canvas.firstPlot.GetYaxis().SetRangeUser(1e-11,10)
+#        #res = make_residual_plot(fits[cat][dy],sumHists[cat][dy])
+#        #canvas.ratPad.cd()
+#        #res.Draw()
+#        do_fit_log(cat,dy,fits[cat][dy],sumHists[cat][dy])
+#        canvas.cleanup(savedir+dy+'_'+cat+'_'+str(args.year)+('_'+args.name if args.name else ''),extList=['.png','.pdf'])
+#
+#       
+## Draw fits for each category together    
+#for dy in dyMC[args.year]:
+#    canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation Preliminary',logy=True)
+#    plots = {cat:{mass:Plotter.Plot(fits[cat][dy][mass],legName=legNames[cat],legType='l',option='l') for mass in ['low','high']} for cat in categories}
+#    p = Plotter.Plot(R.TH1D('tmp_'+dy,'',1,0,6000))
+#    canvas.addMainPlot(p,addToPlotList=False)
+#    for c,cat in enumerate(categories):
+#        canvas.addMainPlot(plots[cat]['low'])
+#        canvas.addMainPlot(plots[cat]['high'],addToPlotList=False)
+#        fits[cat][dy]['low'].SetLineColor(colors[cat])
+#        fits[cat][dy]['high'].SetLineColor(colors[cat])
+#    canvas.firstPlot.GetYaxis().SetRangeUser(1e-11,10)
+#    canvas.firstPlot.GetXaxis().SetRangeUser(120,6000)
+#    canvas.firstPlot.setTitles(X='m(#mu^{+}#mu^{#font[122]{\55}}) [GeV]',Y='XS / Sum of Weights')
+#    canvas.makeLegend(pos='tr')
+#    canvas.legend.moveLegend(X=-0.3)
+#    canvas.cleanup(savedir+dy+'_'+str(args.year)+('_'+args.name if args.name else ''),extList=['.png','.pdf'])
+#
+## Draw fits for single eta category but compare orders of correction
+#for cat in categories:
+#    canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation Preliminary',logy=True)
+#    plots = {dy:{mass:Plotter.Plot(fits[cat][dy][mass],legName=legNames[dy],legType='l',option='l') for mass in ['low','high']} for dy in dyMC[args.year]}
+#    p = Plotter.Plot(R.TH1D('tmp_'+cat,'',1,0,6000))
+#    canvas.addMainPlot(p,addToPlotList=False)
+#    for i,dy in enumerate(dyMC[args.year]):
+#        canvas.addMainPlot(plots[dy]['low'])
+#        canvas.addMainPlot(plots[dy]['high'],addToPlotList=False)
+#        fits[cat][dy]['low'].SetLineColor(colors[dy])
+#        fits[cat][dy]['high'].SetLineColor(colors[dy])
+#    canvas.firstPlot.GetYaxis().SetRangeUser(1e-11,10)
+#    canvas.firstPlot.GetXaxis().SetRangeUser(120,6000)
+#    canvas.firstPlot.setTitles(X='m(#mu^{+}#mu^{#font[122]{\55}}) [GeV]',Y='XS / Sum of Weights')
+#    canvas.makeLegend(pos='tr')
+#    canvas.legend.moveLegend(X=-0.3)
+#    canvas.cleanup(savedir+cat+'_'+str(args.year)+('_'+args.name if args.name else ''),extList=['.png','.pdf'])
 
-# Draw histograms+fits and residual
+outputROOT = R.TFile(savedir+'bkg_histo_sums_'+str(args.year)+'.root','recreate')
 for cat in categories:
     for dy in dyMC[args.year]:
-        canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation Preliminary',logy=True)
-        plot = Plotter.Plot(sumHists[cat][dy],legName=legNames[cat],legType='l',option='hist')
-        canvas.addMainPlot(plot)
-        for mass in ['low','high']:
-            fits[cat][dy][mass].SetLineColor(R.kRed)
-            fits[cat][dy][mass].Draw('same')
-        canvas.firstPlot.setTitles(X='m(#mu^{+}#mu^{#font[122]{\55}}) [GeV]',Y='XS / Sum of Weights')
-        canvas.firstPlot.GetXaxis().SetRangeUser(0,6500)
-        canvas.firstPlot.GetYaxis().SetRangeUser(1e-11,10)
-        #res = make_residual_plot(fits[cat][dy],sumHists[cat][dy])
-        #canvas.ratPad.cd()
-        #res.Draw()
-        do_fit_log(cat,dy,fits[cat][dy],sumHists[cat][dy])
-        canvas.cleanup(savedir+dy+'_'+cat+'_'+str(args.year)+('_'+args.name if args.name else ''),extList=['.png','.pdf'])
-
-       
-# Draw fits for each category together    
-for dy in dyMC[args.year]:
-    canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation Preliminary',logy=True)
-    plots = {cat:{mass:Plotter.Plot(fits[cat][dy][mass],legName=legNames[cat],legType='l',option='l') for mass in ['low','high']} for cat in categories}
-    p = Plotter.Plot(R.TH1D('tmp_'+dy,'',1,0,6000))
-    canvas.addMainPlot(p,addToPlotList=False)
-    for c,cat in enumerate(categories):
-        canvas.addMainPlot(plots[cat]['low'])
-        canvas.addMainPlot(plots[cat]['high'],addToPlotList=False)
-        fits[cat][dy]['low'].SetLineColor(colors[cat])
-        fits[cat][dy]['high'].SetLineColor(colors[cat])
-    canvas.firstPlot.GetYaxis().SetRangeUser(1e-11,10)
-    canvas.firstPlot.GetXaxis().SetRangeUser(120,6000)
-    canvas.firstPlot.setTitles(X='m(#mu^{+}#mu^{#font[122]{\55}}) [GeV]',Y='XS / Sum of Weights')
-    canvas.makeLegend(pos='tr')
-    canvas.legend.moveLegend(X=-0.3)
-    canvas.cleanup(savedir+dy+'_'+str(args.year)+('_'+args.name if args.name else ''),extList=['.png','.pdf'])
-
-# Draw fits for single eta category but compare orders of correction
-for cat in categories:
-    canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation Preliminary',logy=True)
-    plots = {dy:{mass:Plotter.Plot(fits[cat][dy][mass],legName=legNames[dy],legType='l',option='l') for mass in ['low','high']} for dy in dyMC[args.year]}
-    p = Plotter.Plot(R.TH1D('tmp_'+cat,'',1,0,6000))
-    canvas.addMainPlot(p,addToPlotList=False)
-    for i,dy in enumerate(dyMC[args.year]):
-        canvas.addMainPlot(plots[dy]['low'])
-        canvas.addMainPlot(plots[dy]['high'],addToPlotList=False)
-        fits[cat][dy]['low'].SetLineColor(colors[dy])
-        fits[cat][dy]['high'].SetLineColor(colors[dy])
-    canvas.firstPlot.GetYaxis().SetRangeUser(1e-11,10)
-    canvas.firstPlot.GetXaxis().SetRangeUser(120,6000)
-    canvas.firstPlot.setTitles(X='m(#mu^{+}#mu^{#font[122]{\55}}) [GeV]',Y='XS / Sum of Weights')
-    canvas.makeLegend(pos='tr')
-    canvas.legend.moveLegend(X=-0.3)
-    canvas.cleanup(savedir+cat+'_'+str(args.year)+('_'+args.name if args.name else ''),extList=['.png','.pdf'])
+        if dy!='powheg_nnpdf30_nnlo': continue
+        sumHists[cat][dy].Write('sum_bkg_'+cat+'_'+dy)
+outputROOT.Close()

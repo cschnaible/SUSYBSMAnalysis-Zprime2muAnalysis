@@ -10,7 +10,8 @@ os.system('cp ~/public/index.php '+where+'/')
 
 bins = [ [60,120], [120,400],[400,600],[600,900],[900,1300],[1300,1800],[1800,4000] ]
 #bins = [ [60,120] ]
-years = ['run2','2018','2017','2016']
+#years = ['run2','2018','2017','2016']
+years = ['2017']
 cats = ['all','bb','beee']
 
 #cmd_tmp = 'python CompareDataMC.py -d our -x vertex_m -s "vertex_m>60" -c {cat} --do-smear --nnpdf30 --order nnlo --do-fake-rate -ly --do-stack --do-paper --nbinsx {nbinsx} --xmin {xlow} --xmax {xhigh} -w {where} {overflow} -y {year} -n mass_{year}_{cat}_nnpdf30_nnlo_{xlow}_{xhigh} --do-uncert'

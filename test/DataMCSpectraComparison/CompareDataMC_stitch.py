@@ -678,13 +678,14 @@ if args.do_uncert:
             uncert_sums[nondy] += thisbin*math.sqrt(relnondyerr2 + allerr2 )
             tot_sums[nondy] += thisbin*math.sqrt(relnondyerr2)
         inonerr = nondysum*math.sqrt( relnondyerr2 )
-        # Jets errors (additional 50% on jets estimate)
+        # Jets errors 
         if args.do_fake_rate:
             jetbin = hist_sums['jets'].GetBinContent(ibin)
             if year==2017 and ix==1712.5 and args.category=='bb':
                 jeterr = 0
             else:
-                jeterr = 1.*jetbin
+                # 0.88 = (0.5*36.3 + 42.1 + 63.1) / 140
+                jeterr = 0.88*jetbin
             uncert_sums['jets'] += jeterr
             tot_sums['jets'] += jeterr
         else:
@@ -1068,6 +1069,11 @@ def remove_point_val(graph,val=0):
 ## Finally draw the final plots ##
 ##################################
 
+# Make ROOT file with input histograms
+outFile = R.TFile(args.where+'/'+args.name+'_inputs.root','recreate')
+# Add MC
+
+
 # Make Canvas
 totLumi = sum([info[year]['lumi']/1000. for year in allyears])
 lumi = '{:4.1f}'.format(totLumi) if len(allyears)==1 else '{:3.0f}'.format(totLumi)
@@ -1081,6 +1087,11 @@ else:
 pdata = Plotter.Plot(gdata,legName='Data',legType='pez',option='pez')
 pdata_low = Plotter.Plot(gdata_low,legName='Data',legType='pez',option='pez')
 pdata_high = Plotter.Plot(gdata_high,legName='Data',legType='pez',option='pez')
+
+# Add data to output ROOT file
+pdata_low.plot.Write('data_NR_mumu_'+args.category)
+pdata_high.plot.Write('data_SR_mumu_'+args.category)
+
 if args.do_stack:
     pmcstack = Plotter.Plot(s,legName='',legType='',option='hist')
     if args.do_paper:
@@ -1089,6 +1100,7 @@ if args.do_stack:
         pmcs = {name:Plotter.Plot(hists[allyears[0]][name][allMCs[allyears[0]][name][0]],legName=mc_stuff(name)[0],legType='F') for name in mcDrawOrder}
 else:
     pmcstack = Plotter.Plot(totMC,  legName=mc_stuff(year),legType='hist',option='hist')
+
 
 if args.bin_width:
     pmc_low = Plotter.Plot(totMC_low_bw, legName='Total MC (NR)',legType='F',option='hist')
@@ -1100,6 +1112,11 @@ else:
             pmc_low = Plotter.Plot(totMC_low_cum, legName='Total MC (NR)',legType='F',option='hist')
     else:
         pmc_low = Plotter.Plot(totMC_low, legName='Total MC (NR)',legType='F',option='hist')
+
+# Add MC to output ROOT file
+for col in paperDrawOrder:
+    paper_sums[col].Write(col.strip('paper')+'_SR_'+args.category)
+pmc_low.plot.Write('totMC_NR_'+args.category)
 
 canvas.addMainPlot(Plotter.Plot(hist.Clone('tmp')),addToPlotList=False)
 canvas.firstPlot.GetXaxis().SetLabelSize(0)
@@ -1142,10 +1159,16 @@ if args.do_paper and args.do_uncert:
     # Make sure these histograms are not divided by bin-width
     include_zero_bins=False
     if args.do_separate:
+        #outFile.cd()
         canvas.addRatioPlot(totData_high,totMC_high,ytit='(Data #minus Bkg) / Bkg',xtit=xtit,plusminus=1.,zeroed=True,option='pe0z',include_zero_bins=include_zero_bins)
+        canvas.ratList[0].Write('ratio_SR_'+args.category)
         canvas.addRatioPlot(totData_low,totMC_low,ytit='(Data #minus Bkg) / Bkg',xtit=xtit,plusminus=1.,zeroed=True,option='pe0z',include_zero_bins=include_zero_bins)
+        canvas.ratList[1].Write('ratio_NR_'+args.category)
     else:
         canvas.addRatioPlot(totData,totMC,ytit='(Data #minus Bkg) / Bkg',xtit=xtit,plusminus=1.,zeroed=True,option='pez',include_zero_bins=include_zero_bins)
+        canvas.ratList[0].Write('ratio_NRandSR_'+args.category)
+
+    total_uncert.Write('ratio_unc_NRandSR_'+args.category)
     #remove_point(canvas.ratList[1],'high')
     #if args.tdir=='our':
     #    if args.cumulative:
@@ -1173,7 +1196,7 @@ if args.do_paper and args.do_uncert:
     ratLine.SetLineWidth(1)
     ratLine.Draw()
 else:
-    canvas.addRatioPlot(totData,totMC,ytit='Data / Bkg',xtit=xtit,plusminus=1.,option='pe0')
+    canvas.addRatioPlot(totData,totMC,ytit='Data / Bkg',xtit=xtit,plusminus=1.,option='pe0z')
     #canvas.addRatioPlot(totData,totMC,ytit='Data / MC',xtit=xtit,plusminus=1.,option='pe0')
     hmin = min([s.GetStack().Last().GetMinimum(),gdata.GetHistogram().GetMinimum()])
     hmax = max([s.GetStack().Last().GetMaximum(),gdata.GetHistogram().GetMaximum()])
@@ -1190,7 +1213,7 @@ normLineMain.Draw()
 #canvas.drawText(text='#splitline{#splitline{Normal-}{ization}}{Region}',pos=(0.165,0.87),align='tl',fontscale=0.9)
 #canvas.drawText(text='#splitline{Signal}{Region}',pos=(0.275,0.87),align='tl',fontscale=0.9)
 fontscale = canvas.legend.GetTextSize() / canvas.fontsize
-toptext = 0.865
+toptext = 0.8725
 canvas.drawText(text='NR',pos=(0.2,toptext),align='tl',fontscale=fontscale)
 canvas.drawText(text='SR',pos=(0.285,toptext),align='tl',fontscale=fontscale)
 canvas.ratPad.cd()
@@ -1203,6 +1226,9 @@ if args.logx:
     canvas.ratList[0].GetXaxis().SetMoreLogLabels(True)
     canvas.ratList[0].GetXaxis().SetNoExponent(True)
 
+
 # Finish
 canvas.Update()
 canvas.cleanup(args.where+'/'+args.name,extList=['.png','.pdf','.C','.root'],extrascale=1.5)
+
+

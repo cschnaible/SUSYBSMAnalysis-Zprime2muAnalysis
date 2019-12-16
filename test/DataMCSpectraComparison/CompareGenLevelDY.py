@@ -120,6 +120,7 @@ for rel in rels:
 def pretty(arg):
     ret = {
         'res_pt':'GEN p_{T}(#mu^{+}#mu^{-}) [GeV]',
+        'res_mass':'GEN m(#mu^{+}#mu^{-}) [GeV]',
         'res_rap':'GEN y(#mu^{+}#mu^{-})',
         }
     for val in ret.keys():
@@ -128,18 +129,19 @@ def pretty(arg):
 def plusminus(arg):
     ret = {
         'res_pt':0.25,
-        'res_rap':0.25,
+        'res_rap':1.,
         }
     for val in ret.keys():
         if val in arg: return ret[val]
 
-canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation',logy=True,ratioFactor=1./3)
+canvas = Plotter.Canvas(lumi='(13 TeV)',extra='Simulation',logy=True,ratioFactor=1./4,cWidth=1000,cHeight=1000)
+canvas.mainPad.SetFillStyle(4000)
 plots = {rel:Plotter.Plot(histSums[rel],legName=legNames[rel],legType='l',option='hist') for rel in rels}
 for rel in rels:
     canvas.addMainPlot(plots[rel])
     plots[rel].SetLineColor(colors[rel])
 canvas.makeLegend(pos='tr')
-canvas.legend.moveLegend(X=-0.05)
+canvas.legend.moveLegend(X=-0.15)
 xtit = pretty(args.x)
 canvas.firstPlot.setTitles(X=xtit,Y='XS / Sum weights')
 hmax = max([histSums[rel].GetMaximum() for rel in rels])
@@ -149,8 +151,8 @@ hmin = hmin/10 if args.logy else 0.
 hmax = hmax*10 if args.logy else hmax*1.2
 canvas.firstPlot.GetXaxis().SetTitleSize(0)
 canvas.firstPlot.GetXaxis().SetLabelSize(0)
-canvas.addRatioPlot(histSums['94X'], histSums['80X'],ytit='Ratio to 80X',xtit=xtit,plusminus=plusminus(args.x),color=colors['94X'])
-canvas.addRatioPlot(histSums['102X'],histSums['80X'],ytit='Ratio to 80X',xtit=xtit,plusminus=plusminus(args.x),color=colors['102X'])
+canvas.addRatioPlot(histSums['94X'], histSums['80X'],ytit='3.1 / 3.0',xtit=xtit,plusminus=plusminus(args.x),color=colors['94X'],div='normal',option='pe')
+canvas.addRatioPlot(histSums['102X'],histSums['80X'],ytit='3.1 / 3.0',xtit=xtit,plusminus=plusminus(args.x),color=colors['102X'],div='normal',option='pe')
 if args.do_stack:
     canvas.firstPlot.SetMinimum(hmin)
     canvas.firstPlot.SetMaximum(hmax)
@@ -161,5 +163,7 @@ if args.logx:
     canvas.ratPad.SetLogx()
     canvas.ratList[0].GetXaxis().SetMoreLogLabels(True)
     canvas.ratList[0].GetXaxis().SetNoExponent(True)
+canvas.firstPlot.GetYaxis().SetRangeUser(1E-12,1E-6)
 canvas.Update()
+canvas.ratPad.RedrawAxis()
 canvas.cleanup(args.where+'/'+args.name+'.png',extrascale=1.5)

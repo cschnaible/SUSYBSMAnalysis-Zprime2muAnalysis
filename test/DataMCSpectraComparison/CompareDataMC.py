@@ -359,6 +359,12 @@ def mc_draw(year):
             drawThis = '(lep_pt[0]<lep_pt[1])*(fabs(lep_eta[0])<1.2)*lep_pt[0] + (lep_pt[1]<lep_pt[0])*(fabs(lep_eta[1])<1.2)*lep_pt[1]'
         elif args.x=='sub_pt_e':
             drawThis = '(lep_pt[0]<lep_pt[1])*(fabs(lep_eta[0])>1.2)*lep_pt[0] + (lep_pt[1]<lep_pt[0])*(fabs(lep_eta[1])>1.2)*lep_pt[1]'
+        elif args.x=='dil_pt_diff':
+            drawThis = 'fabs(lep_pt[0]-lep_pt[1])'
+        elif args.x=='rel_iso':
+            drawThis = 'lep_sumPt / lep_tk_pt'
+        elif args.x=='lep_pt':
+            drawThis = 'lep_pt[0]'
         else:
             drawThis = args.x
     return drawThis
@@ -388,6 +394,12 @@ elif args.x=='sub_pt_b':
     dataDraw = '(lep_pt[0]<lep_pt[1])*(fabs(lep_eta[0])<1.2)*lep_pt[0] + (lep_pt[1]<lep_pt[0])*(fabs(lep_eta[1])<1.2)*lep_pt[1]'
 elif args.x=='sub_pt_e':
     dataDraw = '(lep_pt[0]<lep_pt[1])*(fabs(lep_eta[0])>1.2)*lep_pt[0] + (lep_pt[1]<lep_pt[0])*(fabs(lep_eta[1])>1.2)*lep_pt[1]'
+elif args.x=='dil_pt_diff':
+    dataDraw = 'fabs(lep_pt[0]-lep_pt[1])'
+elif args.x=='rel_iso':
+    dataDraw = 'lep_sumPt / lep_tk_pt'
+elif args.x=='lep_pt':
+    dataDraw = 'lep_pt[0]'
 else:
     dataDraw = args.x
 
@@ -397,7 +409,8 @@ dataHists = {year:{} for year in allyears}
 for year in allyears:
     #data_sel = sel+(' && '+args.data_sel if args.data_sel else '')
     if args.tdir=='our':
-        data_sel = '(vertex_m>120 && '+sel+(' && '+args.data_sel if args.data_sel else '')+')'
+        #data_sel = '(vertex_m>120 && '+sel+(' && '+args.data_sel if args.data_sel else '')+')'
+        data_sel = '('+sel+(' && '+args.data_sel if args.data_sel else '')+')'
     elif args.tdir=='ourcommonpre':
         if args.prescale_weight=='mc':
             data_sel = '(vertex_m<120 && '+sel+(' && '+args.data_sel if args.data_sel else '')+')'
@@ -438,7 +451,6 @@ def mc_cut_weight(year,name):
     mcCutWeight += '*genWeight'
     return mcCutWeight
 
-mc_sums = {year:{'int':0.,'ent':0.,'err2':0.} for year in allyears}
 mc_int_sum = 0.
 mc_ent_sum = 0.
 mc_err2_sum = 0.
@@ -478,9 +490,6 @@ for name in mcDrawOrder:
             scale_by *= (1./info[year][args.tdir]['pre']) if args.prescale_weight=='mc' else 1.0
             if args.scaleZ0: scale_by *= info[year]['ratioZ0'][args.category]
             hists[year][name][mc].Scale(scale_by)
-            mc_sums[year]['int'] += hists[year][name][mc].Integral()
-            mc_sums[year]['err2'] += 1./math.sqrt(hists[year][name][mc].GetEntries()) if hists[year][name][mc].GetEntries()>0 else 0.
-            mc_sums[year]['ent'] += hists[year][name][mc].GetEntries()
             hist_sums[name].SetDirectory(0)
             hist_sums[name].Add(hists[year][name][mc])
     totMC.SetDirectory(0)
@@ -617,13 +626,14 @@ if args.do_uncert:
             uncert_sums[nondy] += thisbin*math.sqrt(relnondyerr2 + allerr2 )
             tot_sums[nondy] += thisbin*math.sqrt(relnondyerr2)
         inonerr = nondysum*math.sqrt( relnondyerr2 )
-        # Jets errors (additional 50% on jets estimate)
+        # Jets errors
         if args.do_fake_rate:
             jetbin = hist_sums['jets'].GetBinContent(ibin)
             if year==2017 and ix==1712.5 and args.category=='bb':
                 jeterr = 0
             else:
-                jeterr = 1.*jetbin
+                # 0.88 = (0.5*36.3 + 42.1 + 63.1) / 140
+                jeterr = 0.88*jetbin
             uncert_sums['jets'] += jeterr
             tot_sums['jets'] += jeterr
         else:
@@ -832,9 +842,15 @@ def pretty(arg):
         'n_dils':'N(#mu^{+}#mu^{#font[122]{\55}}) passing selection',
         'nvertices':'N(primary vertices)',
         'lep_Mu27_triggerMatchPt':'Mu27 trigger match p_{T}(#mu) [GeV]',
+        'lep_pz':'p_{Z}(#mu) [GeV]',
+        'lep_eta':'#eta(#mu)',
+        'lep_phi':'#phi(#mu)',
+        'rel_iso':'rel. trk. iso.',
+        'dil_pt_diff':'|#Delta p_{T}(#mu)|',
         }
-    for val in ret.keys():
-        if val in arg: return ret[val]
+    return ret[arg]
+    #for val in ret.keys():
+    #    if val in arg: return ret[val]
 
 def mc_stuff(name):
     # My style
@@ -970,6 +986,7 @@ if args.do_stack:
         for col in reversed(paperDrawOrder):
             pmcs[col].SetFillColor(get_color(col))
             canvas.legend.addLegendEntry(pmcs[col])
+        canvas.legend.moveLegend(-0.1)
     else:
         for name in reversed(mcDrawOrder):
             pmcs[name].SetFillColor(get_color(name))
@@ -1003,18 +1020,26 @@ if args.do_paper and args.do_uncert:
         rat.Draw('pezsame0')
     #canvas.addRatioPlot(totData,totMC,ytit='(Data #minus Bkg) / Bkg',xtit=xtit,plusminus=1.,zeroed=True,option='pe0')
     canvas.ratPad.RedrawAxis()
-    ratLine = R.TLine(60,0,4000,0)
+    ratLine = R.TLine(args.xmin,0,args.xmax,0)
     ratLine.SetLineStyle(3)
     ratLine.SetLineWidth(1)
     ratLine.Draw()
 else:
-    canvas.addRatioPlot(totData,totMC,ytit='Data / Bkg',xtit=xtit,plusminus=1.,option='pe0')
+    include_zero_bins=False
+    #canvas.addRatioPlot(totData,totMC,ytit='Data / Bkg',xtit=xtit,plusminus=1.,option='pe0')
+    canvas.addRatioPlot(totData,totMC,ytit='(Data #minus Bkg) / Bkg',xtit=xtit,plusminus=1.,zeroed=True,option='pe0z',include_zero_bins=include_zero_bins)
     #canvas.addRatioPlot(totData,totMC,ytit='Data / MC',xtit=xtit,plusminus=1.,option='pe0')
     hmin = min([s.GetStack().Last().GetMinimum(),gdata.GetHistogram().GetMinimum()])
     hmax = max([s.GetStack().Last().GetMaximum(),gdata.GetHistogram().GetMaximum()])
     if hmin==0. and args.logy: hmin=0.01
     hmin = hmin/10 if args.logy else 0.
     hmax = hmax*10 if args.logy else hmax*1.2
+    if 'zpeak' in args.name:
+        hmin,hmax = 1, 1E7
+    elif 'dil_rap' in args.name:
+        hmin,hmax = 1E2,1E6
+    elif 'lep_pz' in args.name:
+        hmin,hmax = 1E-1,1E5
 canvas.firstPlot.GetXaxis().SetTitleSize(0)
 canvas.firstPlot.GetXaxis().SetLabelSize(0)
 canvas.firstPlot.GetYaxis().SetRangeUser(hmin,hmax)

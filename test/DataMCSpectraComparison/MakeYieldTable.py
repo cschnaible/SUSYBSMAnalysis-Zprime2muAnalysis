@@ -6,13 +6,14 @@ import SUSYBSMAnalysis.Zprime2muAnalysis.lumberjack as lumberjack
 #logDir = 'www_yields_20190701/'
 #logDir = 'www_yields_20190701_withJets/'
 #logDir = 'www_yields_20190702_forApproval/'
-logDir = 'www_yields_20190713/'
+#logDir = 'www_yields_20190713/'
+logDir = 'www_yields_20190801/'
 cats = ['all','bb','beee']
 years = ['run2','2018','2017','2016']
 pyears = {'2016':'2016','2017':'2017','2018':'2018','all':'Run2','run2':'Run2'}
 pcats = {'bb':'barrel-barrel','beee':'barrel-endcap + endcap-endcap','all':'inclusive'}
 masses = ['60_120','120_400','400_600','600_900','900_1300','1300_1800','1800_4000']
-pmasses = {'60_120':'$60-120$','120_400':'$120-400$', '400_600':'$400-600$', '600_900':'$600-900$', '900_1300':'$900-1300$', '1300_1800':'$1300-1800$', '1800_4000':'$>1800$'}
+pmasses = {'60_120':'60--120','120_400':'120--400', '400_600':'400--600', '600_900':'600--900', '900_1300':'900--1300', '1300_1800':'1300--1800', '1800_4000':'$>1800$'}
 data = {year:{cat:{mass:{} for mass in masses} for cat in cats} for year in years}
 for year in years:
     for cat in cats:

@@ -107,6 +107,17 @@ private:
     float lep_tk_chi2[2];
     float lep_tk_ndf[2];
     //float lep_tk_qOverPt[2];
+    int lep_sa_q[2];
+    float lep_sa_p[2];
+    float lep_sa_pt[2];
+    float lep_sa_pt_err[2];
+    float lep_sa_px[2];
+    float lep_sa_py[2];
+    float lep_sa_pz[2];
+    float lep_sa_eta[2];
+    float lep_sa_phi[2];
+    float lep_sa_chi2[2];
+    float lep_sa_ndf[2];
     int lep_glb_q[2];
     float lep_glb_p[2];
     float lep_glb_pt[2];
@@ -448,6 +459,17 @@ SimpleNtupler_miniAOD::SimpleNtupler_miniAOD(const edm::ParameterSet& cfg)
   tree->Branch("lep_glb_chi2", t.lep_glb_chi2, "lep_glb_chi2[2]/F");
   tree->Branch("lep_glb_ndf", t.lep_glb_ndf, "lep_glb_ndf[2]/F");
   //tree->Branch("lep_glb_qOverPt", t.lep_glb_qOverPt, "lep_glb_qOverPt[2]/F");
+  tree->Branch("lep_sa_q", t.lep_sa_q, "lep_sa_q[2]/I");
+  tree->Branch("lep_sa_p", t.lep_sa_p, "lep_sa_p[2]/F");
+  tree->Branch("lep_sa_pt", t.lep_sa_pt, "lep_sa_pt[2]/F");
+  tree->Branch("lep_sa_pt_err", t.lep_sa_pt_err, "lep_sa_pt_err[2]/F");
+  tree->Branch("lep_sa_px", t.lep_sa_px, "lep_sa_px[2]/F");
+  tree->Branch("lep_sa_py", t.lep_sa_py, "lep_sa_py[2]/F");
+  tree->Branch("lep_sa_pz", t.lep_sa_pz, "lep_sa_pz[2]/F");
+  tree->Branch("lep_sa_eta", t.lep_sa_eta, "lep_sa_eta[2]/F");
+  tree->Branch("lep_sa_phi", t.lep_sa_phi, "lep_sa_phi[2]/F");
+  tree->Branch("lep_sa_chi2", t.lep_sa_chi2, "lep_sa_chi2[2]/F");
+  tree->Branch("lep_sa_ndf", t.lep_sa_ndf, "lep_sa_ndf[2]/F");
   tree->Branch("lep_tpfms_q", t.lep_tpfms_q, "lep_tpfms_q[2]/I");
   tree->Branch("lep_tpfms_p", t.lep_tpfms_p, "lep_tpfms_p[2]/F");
   tree->Branch("lep_tpfms_pt", t.lep_tpfms_pt, "lep_tpfms_pt[2]/F");
@@ -1130,6 +1152,16 @@ void SimpleNtupler_miniAOD::analyze(const edm::Event& event, const edm::EventSet
                 t.lep_tk_chi2[w] = -999;
                 t.lep_tk_ndf[w] = -999;
                 //t.lep_tk_qOverPt[w] = -999;
+                t.lep_sa_p[w] = -999;
+                t.lep_sa_pt[w] = -999;
+                t.lep_sa_pt_err[w] = -999;
+                t.lep_sa_px[w] = -999;
+                t.lep_sa_py[w] = -999;
+                t.lep_sa_pz[w] = -999;
+                t.lep_sa_eta[w] = -999;
+                t.lep_sa_phi[w] = -999;
+                t.lep_sa_chi2[w] = -999;
+                t.lep_sa_ndf[w] = -999;
                 t.lep_glb_p[w] = -999;
                 t.lep_glb_pt[w] = -999;
                 t.lep_glb_pt_err[w] = -999;
@@ -1360,6 +1392,37 @@ void SimpleNtupler_miniAOD::analyze(const edm::Event& event, const edm::EventSet
                     t.lep_tk_chi2[w] = mu->innerTrack()->chi2();
                     t.lep_tk_ndf[w] = mu->innerTrack()->ndof();
                     //t.lep_tk_qOverPt[w] = (mu->charge())/(mu->innerTrack()->pt());
+                }
+                // 
+                // Stand alone Muon Information
+                //
+                if (mu->outerTrack().isNull()){
+                    t.lep_sa_q[w] = 0;
+                    t.lep_sa_p[w] = -999;
+                    t.lep_sa_pt[w] = -999;
+                    t.lep_sa_pt_err[w] = -999;
+                    t.lep_sa_px[w] = -999;
+                    t.lep_sa_py[w] = -999;
+                    t.lep_sa_pz[w] = -999;
+                    t.lep_sa_eta[w] = -999;
+                    t.lep_sa_phi[w] = -999;
+                    t.lep_sa_chi2[w] = -999;
+                    t.lep_sa_ndf[w] = -999;
+                    //t.lep_sa_qOverPt[w] = -999;
+                }
+                else {
+                    t.lep_sa_q[w] = mu->outerTrack()->charge();
+                    t.lep_sa_p[w] = mu->outerTrack()->p();
+                    t.lep_sa_pt[w] = mu->outerTrack()->pt();
+                    t.lep_sa_pt_err[w] = mu->outerTrack()->ptError();
+                    t.lep_sa_px[w] = mu->outerTrack()->px();
+                    t.lep_sa_py[w] = mu->outerTrack()->py();
+                    t.lep_sa_pz[w] = mu->outerTrack()->pz();
+                    t.lep_sa_eta[w] = mu->outerTrack()->eta();
+                    t.lep_sa_phi[w] = mu->outerTrack()->phi();
+                    t.lep_sa_chi2[w] = mu->outerTrack()->chi2();
+                    t.lep_sa_ndf[w] = mu->outerTrack()->ndof();
+                    //t.lep_sa_qOverPt[w] = (mu->charge())/(mu->outerTrack()->pt());
                 }
                 // 
                 // Global Muon Information

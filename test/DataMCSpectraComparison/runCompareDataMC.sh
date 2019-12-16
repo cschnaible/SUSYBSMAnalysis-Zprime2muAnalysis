@@ -16,9 +16,14 @@
 #where=www_datamc_20190710_style4
 
 #where=www_datamc_20190713_style1
-where=www_datamc_20190716
+#where=www_datamc_20190716
+#where=thesis
 #where=www_datamc_20190713_new_jets
-name=20190715
+#name=20190715
+#where=www_datamc_20190801
+#name=20190801
+where=ForMin
+name=20190813
 
 #order=nnlo
 cp ~/public/index.php ${where}
@@ -59,11 +64,33 @@ do
         #for year in 2018 
         do
 
+            # For theisis
+
+            #python CompareDataMC.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 44 --xmin 120 --xmax 4000 --logy --do-stack -y ${year} -n mass_120m_${year}_${cat}_nnpdf30_log_bw_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --bin-width --overflow --scaleZ0 
+            #python CompareDataMC.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 44 --xmin 120 --xmax 4000 --logy --do-stack -y ${year} -n mass_120m_${year}_${cat}_nnpdf30_log_cum_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --cumulative --overflow --scaleZ0
+            #python CompareDataMC.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 194 --xmin 120 --xmax 4000 --logy --do-stack -y ${year} -n mass_120m_${year}_${cat}_nnpdf30_lin_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --order ${order} --do-fake-rate --overflow --scaleZ0
+            #python CompareDataMC.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 194 --xmin 120 --xmax 4000 --logy --do-stack -y ${year} -n mass_120m_${year}_${cat}_nnpdf30_lin_cum_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --order ${order} --do-fake-rate --overflow --scaleZ0 --cumulative
+            
+            #python CompareDataMC.py -x vertex_m -d ourcommonpre -c ${cat} -s "vertex_m>50" --nbinsx 30 --xmin 60 --xmax 120 --logy --do-stack -y ${year} -n mass_zpeak_${year}_${cat}_nnpdf30_${name} -w ${where} --do-paper --nnpdf30 --order ${order} --prescale-weight mc
+
+            #python CompareDataMC.py -x lep_pt -c ${cat} -s "vertex_m>120" --nbinsx 30 --xmin 50 --xmax 2000 --logy --do-stack -y ${year} -n lep_pt_${year}_${cat}_nnpdf30_log_bw_${name} -w ${where} --do-paper --nnpdf30 --logx --order ${order} --bin-width --overflow --scaleZ0
+            #python CompareDataMC.py -x lep_pz -c ${cat} -s "vertex_m>120" --nbinsx 30 --xmin 50 --xmax 1500 --logy --do-stack -y ${year} -n lep_pz_${year}_${cat}_nnpdf30_log_bw_${name} -w ${where} --do-paper --nnpdf30 --logx --order ${order} --bin-width --overflow --scaleZ0
+            #python CompareDataMC.py -x lep_eta -c ${cat} -s "vertex_m>120" --nbinsx 24 --xmin -2.4 --xmax 2.4  --logy --do-stack -y ${year} -n lep_eta_${year}_${cat}_nnpdf30_${name} -w ${where} --do-paper --nnpdf30 --order ${order} --scaleZ0
+            #python CompareDataMC.py -x lep_phi -c ${cat} -s "vertex_m>120" --nbinsx 24 --xmin -3.1416 --xmax 3.1416  --logy --do-stack -y ${year} -n lep_phi_${year}_${cat}_nnpdf30_${name} -w ${where} --do-paper --nnpdf30 --order ${order} --scaleZ0
+           # python CompareDataMC.py -x rel_iso -c ${cat} -s "vertex_m>120" --nbinsx 20 --xmin 0 --xmax 0.1 --logy --do-stack -y ${year} -n lep_rel_iso_${year}_${cat}_nnpdf30_${name} -w ${where} --do-paper --nnpdf30 --order ${order} --bin-width --overflow --scaleZ0
+
+            #python CompareDataMC.py -x dil_pt -c ${cat} -s "vertex_m>120" --nbinsx 25 --xmin 0 --xmax 500 --logy --do-stack -y ${year} -n dil_pt_${year}_${cat}_nnpdf30_${name} --order ${order} --overflow --scaleZ --nnpdf30 --do-paper --where ${where}
+            #python CompareDataMC.py -x dil_rap -c ${cat} -s "vertex_m>120" --nbinsx 24 --xmin -2.4 --xmax 2.4 --logy --do-stack -y ${year} -n dil_rap_${year}_${cat}_nnpdf30_${name} --order ${order} --overflow --scaleZ0 --nnpdf30 --do-paper --where ${where}
+            #python CompareDataMC.py -x dil_pt_diff -c ${cat} -s "vertex_m>120" --nbinsx 25 --xmin 0 --xmax 500 --logy --do-stack -y ${year} -n dil_pt_diff_${year}_${cat}_nnpdf30_${name} --order ${order} --bin-width --overflow --scaleZ0 --nnpdf30 --do-paper --where ${where}
+            #python CompareDataMC.py -x cos_angle -c ${cat} -s "vertex_m>120" --nbinsx 25 --xmin -1 --xmax 1 --logy --do-stack -y ${year} -n cos_angle_${year}_${cat}_nnpdf30_${name} --order ${order} --overflow --scaleZ0 --nnpdf30 --do-paper --where ${where}
+            
+            # For PAS
+
             # Combined low- and high-mass, logarithmic mass axis
             python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 52 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_${year}_${cat}_nnpdf30_log_bw_prescaleMC_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --bin-width --overflow --scaleZ0 --prescale-weight mc
             python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 52 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_${year}_${cat}_nnpdf30_log_cum_prescaleMC_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --overflow --scaleZ0 --prescale-weight mc --cumulative --do-separate
-            python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 52 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_${year}_${cat}_nnpdf30_log_bw_prescaleData_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --bin-width --overflow --scaleZ0 --prescale-weight data 
-            python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 52 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_${year}_${cat}_nnpdf30_log_cum_prescaleData_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --overflow --scaleZ0 --prescale-weight data --cumulative --do-separate
+            #python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 52 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_${year}_${cat}_nnpdf30_log_bw_prescaleData_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --bin-width --overflow --scaleZ0 --prescale-weight data 
+            #python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 52 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_${year}_${cat}_nnpdf30_log_cum_prescaleData_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --overflow --scaleZ0 --prescale-weight data --cumulative --do-separate
 
             # High-mass, logarithmic mass axis
             #python CompareDataMC.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 44 --xmin 120 --xmax 4000 --logy --do-stack -y ${year} -n mass_120m_${year}_${cat}_nnpdf30_log_bw_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --bin-width --overflow --scaleZ0 
@@ -78,6 +105,8 @@ do
             # Low-mass, linear mass axis
             #python CompareDataMC.py -d ourcommonpre -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 30 --xmin 60 --xmax 120 --logy --do-stack -y ${year} -n mass_zpeak_${year}_${cat}_nnpdf30_lin_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --order ${order}  --prescale-weight mc
             #python CompareDataMC.py -d ourcommonpre -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 30 --xmin 60 --xmax 120 --logy --do-stack -y ${year} -n mass_zpeak_${year}_${cat}_nnpdf30_lin_cum_${name} -w ${where} --do-paper --do-uncert --nnpdf30 --order ${order}  --prescale-weight mc --cumulative
+
+            # no longer PAS
 
             #python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 50 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_stitch_${year}_${cat}_nnpdf30_cum_20190707_preWeight -w ${where} --do-paper --do-uncert --nnpdf30 --logx --order ${order} --do-fake-rate --cumulative --overflow --scaleZ0
             #python CompareDataMC_stitch.py -x vertex_m -c ${cat} -s "vertex_m>50" --nbinsx 197 --xmin 60 --xmax 4000 --logy --do-stack -y ${year} -n mass_stitch_${year}_${cat}_nnpdf30_lin_20190707 -w ${where} --do-paper --do-uncert --nnpdf30 --order ${order} --do-fake-rate --overflow --scaleZ0
@@ -101,7 +130,10 @@ do
             #python CompareDataMC.py -d our -x vertex_m -c ${cat} -s "vertex_m>60" --nbinsx 51 --xmin 120 --xmax 400 --nnpdf30 --order ${order} -ly -lx --do-stack -y ${year} -n mass_${year}_${cat}_nnpdf30_${order}_bw_log_err_test -w ${where} --bin-width --overflow --scaleZ0 --do-smear --do-fake-rate --do-paper
 
             #python CompareDataMC.py -d ourcommonpre -x vertex_m -c ${cat} -s "vertex_m>60" --nbinsx 65 --xmin 70 --xmax 200 --logy --do-stack -y ${year} -n mass_70m200_${year}_${cat}_nnpdf30_20190704 -w ${where} --do-paper --do-uncert --nnpdf30
+            break
         done
+        break
     done
+    break
 done
 

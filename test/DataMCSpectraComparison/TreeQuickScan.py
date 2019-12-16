@@ -8,6 +8,7 @@ parser.add_argument('-s','--selection',default='')
 parser.add_argument('-c','--category',default='all',help='all,bb,beee')
 parser.add_argument('-v','--var',action='append',help='Quantities to print')
 parser.add_argument('-n','--name',default='',help='extra name for output')
+parser.add_argument('--mc',default=None,help='Do mc and specify')
 args = parser.parse_args()
 info = {
         2016:{
@@ -85,7 +86,10 @@ info = {
             },
         }
 
-f = R.TFile(info[args.year]['path']+info[args.year]['file'])
+if args.mc==None:
+    f = R.TFile(info[args.year]['path']+info[args.year]['file'])
+else:
+    f = R.TFile(info[args.year]['mcpath']+'ana_datamc_'+args.mc+'.root')
 t = f.Get(info[args.year][args.dir]['dir']+'/t')
 
 cats = {

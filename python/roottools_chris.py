@@ -225,7 +225,11 @@ def cumulative_histogram(h, type='ge',noerr=False,overflow=True,end=-1,begin=-1)
         elif type=='le' and ((hc.GetBinCenter(i) > end and end > 0) or (hc.GetBinCenter(i)<begin and begin>0)):
             c = 0
         else:
-            c = h.GetBinContent(i) + prev
+            if h.GetBinContent(i)<0:
+                add = 0.
+            else:
+                add = h.GetBinContent(i)
+            c = add + prev
         hc.SetBinContent(i, c)
         if c > 0 and noerr==False:
             hc.SetBinError(i, c**0.5)
